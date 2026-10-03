@@ -19,6 +19,7 @@ import { PomodoroTimer } from './components/tools/PomodoroTimer';
 import { TextTools } from './components/tools/TextTools';
 import { UnitConverter } from './components/tools/UnitConverter';
 import { QrGenerator } from './components/tools/QrGenerator';
+import { CountdownTool } from './components/tools/CountdownTool';
 
 // Extended Tool Suite
 import { MarkdownEditor } from './components/tools/MarkdownEditor';
@@ -90,6 +91,7 @@ import {
 import { CheckCircle2, AlertTriangle, Sparkles, Database, Star } from 'lucide-react';
 
 const DEFAULT_BASELINE_USAGE: Record<string, number> = {
+  'countdown': 124,
   'health-suite': 112,
   'finance-suite': 98,
   'productivity-suite': 94,
@@ -1054,6 +1056,7 @@ export default function App() {
         {activeTab === 'text-tools' && <TextTools />}
         {activeTab === 'unit-converter' && <UnitConverter />}
         {activeTab === 'qr-generator' && <QrGenerator />}
+        {activeTab === 'countdown' && <CountdownTool />}
 
         {/* Extended Suite Tools */}
         {activeTab === 'markdown' && <MarkdownEditor />}

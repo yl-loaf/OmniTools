@@ -82,6 +82,7 @@ export const TOOLS_REGISTRY: ToolMeta[] = [
   { id: 'unit-converter', name: 'Universal Unit Converter', shortLabel: 'Unit Converter', desc: 'Convert length, weight, data & speed', icon: ArrowRightLeft, category: 'Math & Finance' },
 
   // Productivity
+  { id: 'countdown', name: 'Event Countdown Timer', shortLabel: 'Countdown Timer', desc: 'Real-time countdown in mm:dd:hh:mm:ss format', icon: Clock, category: 'Productivity', badge: 'New' },
   { id: 'time-converter', name: 'Time & World Clocks', shortLabel: 'Time & Clocks', desc: 'Unix timestamps & world timezones', icon: Clock, category: 'Productivity' },
   { id: 'timer', name: 'Pomodoro & Lap Timer', shortLabel: 'Pomodoro Timer', desc: 'Focus intervals & lap stopwatch', icon: Timer, category: 'Productivity', badge: 'Focus' },
   { id: 'text-tools', name: 'Text & String Transformation', shortLabel: 'Text Tools', desc: 'Case conversions, word count & diff', icon: Type, category: 'Productivity' },
