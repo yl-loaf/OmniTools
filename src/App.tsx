@@ -142,7 +142,20 @@ export default function App() {
         },
         (error) => {
           console.warn('Firestore tool_requests listener fallback:', error);
-          setRequests(getLocalRequests());
+          const localReqs = getLocalRequests();
+          setRequests(localReqs);
+          fetchRequestsFromGoogleSheet().then((sheetReqs) => {
+            if (sheetReqs && sheetReqs.length > 0) {
+              const merged = [...sheetReqs];
+              for (const lr of localReqs) {
+                if (!merged.some((mr) => mr.id === lr.id)) {
+                  merged.push(lr);
+                }
+              }
+              setRequests(merged);
+              saveLocalRequests(merged);
+            }
+          });
         }
       );
 
