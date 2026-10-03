@@ -152,6 +152,36 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
     setTimeout(() => setCopiedId(null), 2500);
   };
 
+  const handleBatchCopyRequests = (n: number) => {
+    const targets = filteredRequests.slice(0, n);
+    if (targets.length === 0) return;
+    const text = targets
+      .map(
+        (r, idx) =>
+          `### ${idx + 1}. ${r.title} (${r.category})\n- Submitted by: ${r.authorName}\n- Description:\n${r.description}\n`
+      )
+      .join('\n---\n\n');
+
+    navigator.clipboard.writeText(text);
+    setCopiedId(`batch-req-${n}`);
+    setTimeout(() => setCopiedId(null), 2500);
+  };
+
+  const handleBatchCopyBugs = (n: number) => {
+    const targets = filteredIssues.slice(0, n);
+    if (targets.length === 0) return;
+    const text = targets
+      .map(
+        (i, idx) =>
+          `### ${idx + 1}. Bug Report on Tool: ${i.toolName}\n- Reporter: ${i.reporterName}\n- Status: ${i.status}\n- Description:\n${i.description}\n`
+      )
+      .join('\n---\n\n');
+
+    navigator.clipboard.writeText(text);
+    setCopiedId(`batch-bug-${n}`);
+    setTimeout(() => setCopiedId(null), 2500);
+  };
+
   const handleExecutePurge = async () => {
     setIsPurging(true);
     try {
@@ -212,7 +242,7 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-1">
-              Copy user proposals, resolve bug reports (+3 CP reward), assign shipping versions, and purge old submissions.
+              Copy user proposals, batch copy 1/2/5/10/20/25 features & bugs, resolve bug reports (+3 CP), and purge old submissions.
             </p>
           </div>
         </div>
@@ -267,35 +297,64 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
       </div>
 
       {/* Admin Tab Switcher: Requests vs Bug Reports */}
-      <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
-        <button
-          onClick={() => setActiveAdminTab('requests')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
-            activeAdminTab === 'requests'
-              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
-              : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
-          }`}
-        >
-          <Wrench className="w-4 h-4" />
-          <span>Feature Requests ({requests.length})</span>
-        </button>
+      <div className="flex items-center justify-between border-b border-slate-800 pb-3 flex-wrap gap-3">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setActiveAdminTab('requests')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+              activeAdminTab === 'requests'
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+            }`}
+          >
+            <Wrench className="w-4 h-4" />
+            <span>Feature Requests ({requests.length})</span>
+          </button>
 
-        <button
-          onClick={() => setActiveAdminTab('bugs')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
-            activeAdminTab === 'bugs'
-              ? 'bg-rose-600 text-white shadow-md shadow-rose-500/20'
-              : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
-          }`}
-        >
-          <Bug className="w-4 h-4 text-rose-400" />
-          <span>Broken Feature Reports ({issues.length})</span>
-          {stats.openBugs > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full bg-rose-950 text-rose-300 font-mono text-[10px]">
-              {stats.openBugs} open
-            </span>
-          )}
-        </button>
+          <button
+            onClick={() => setActiveAdminTab('bugs')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+              activeAdminTab === 'bugs'
+                ? 'bg-rose-600 text-white shadow-md shadow-rose-500/20'
+                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+            }`}
+          >
+            <Bug className="w-4 h-4 text-rose-400" />
+            <span>Broken Feature Reports ({issues.length})</span>
+            {stats.openBugs > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-rose-950 text-rose-300 font-mono text-[10px]">
+                {stats.openBugs} open
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Batch Copy 1, 2, 5, 10, 20, 25 Features / Bugs at once */}
+        <div className="flex items-center gap-1 flex-wrap bg-slate-900 p-1.5 rounded-xl border border-slate-800">
+          <span className="text-[10px] font-bold text-slate-400 px-2 uppercase">
+            Copy Top {activeAdminTab === 'requests' ? 'Features' : 'Bugs'}:
+          </span>
+          {[1, 2, 5, 10, 20, 25].map((n) => {
+            const batchKey = `batch-${activeAdminTab === 'requests' ? 'req' : 'bug'}-${n}`;
+            const isCopied = copiedId === batchKey;
+
+            return (
+              <button
+                key={n}
+                onClick={() => activeAdminTab === 'requests' ? handleBatchCopyRequests(n) : handleBatchCopyBugs(n)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition border flex items-center gap-1 ${
+                  isCopied
+                    ? 'bg-emerald-950 text-emerald-300 border-emerald-700'
+                    : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+                }`}
+                title={`Copy first ${n} ${activeAdminTab === 'requests' ? 'features' : 'bugs'} to clipboard`}
+              >
+                {isCopied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-purple-400" />}
+                <span>{n}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Filter & Search Bar */}
