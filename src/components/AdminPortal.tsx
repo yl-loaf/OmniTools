@@ -5,7 +5,8 @@ import {
   RequestStatus,
   RequestCategory,
   ADMIN_EMAIL,
-  ShippedToolRecord
+  ShippedToolRecord,
+  ToolIssue
 } from '../types';
 import { APP_VERSION } from '../../version.js';
 import {
@@ -28,14 +29,18 @@ import {
   Calendar,
   Layers,
   Archive,
-  RefreshCw
+  RefreshCw,
+  Bug,
+  AlertCircle
 } from 'lucide-react';
 
 interface AdminPortalProps {
   currentUser: UserProfile | null;
   requests: ToolRequest[];
+  issues: ToolIssue[];
   users: UserProfile[];
   onUpdateStatus: (requestId: string, status: RequestStatus, version?: string, rejectionReason?: string) => void;
+  onResolveIssue: (issueId: string, fixNotes: string) => void;
   onPurgeOldRequests: () => Promise<number>;
   onDeleteRequest: (requestId: string) => Promise<void>;
   onLoginGoogle: () => void;
@@ -44,12 +49,15 @@ interface AdminPortalProps {
 export const AdminPortal: React.FC<AdminPortalProps> = ({
   currentUser,
   requests,
+  issues,
   users,
   onUpdateStatus,
+  onResolveIssue,
   onPurgeOldRequests,
   onDeleteRequest,
   onLoginGoogle,
 }) => {
+  const [activeAdminTab, setActiveAdminTab] = useState<'requests' | 'bugs'>('requests');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -59,6 +67,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   // Rejection modal state
   const [rejectingReqId, setRejectingReqId] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState('Duplicate or inappropriate submission');
+
+  // Fix bug resolution modal state
+  const [resolvingIssueId, setResolvingIssueId] = useState<string | null>(null);
+  const [fixNotes, setFixNotes] = useState('Bug patched and verified in live build.');
 
   // Version assignment
   const [customVersion, setCustomVersion] = useState(`v${APP_VERSION}`);
@@ -95,21 +107,32 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     });
   }, [requests, searchQuery, statusFilter]);
 
+  // Filtered issues
+  const filteredIssues = useMemo(() => {
+    return issues.filter((i) =>
+      i.toolName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      i.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      i.reporterName.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [issues, searchQuery]);
+
   // Metrics
   const stats = useMemo(() => {
     const pending = requests.filter((r) => r.status === 'pending').length;
     const inProgress = requests.filter((r) => r.status === 'in_progress').length;
     const completed = requests.filter((r) => r.status === 'completed').length;
     const rejected = requests.filter((r) => r.status === 'rejected').length;
+    const openBugs = issues.filter((i) => i.status === 'open').length;
     return {
       total: requests.length,
       pending,
       inProgress,
       completed,
       rejected,
+      openBugs,
       purgeEligible: oldShippedRequests.length,
     };
-  }, [requests, oldShippedRequests]);
+  }, [requests, oldShippedRequests, issues]);
 
   const handleCopyIdeaPrompt = (req: ToolRequest) => {
     const prompt = `FEATURE REQUEST PROMPT:
@@ -127,17 +150,6 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
     navigator.clipboard.writeText(prompt);
     setCopiedId(req.id);
     setTimeout(() => setCopiedId(null), 2500);
-  };
-
-  const handleCopyTitleOnly = (title: string, id: string) => {
-    navigator.clipboard.writeText(title);
-    setCopiedId(`title-${id}`);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
-
-  const handleShipFeature = (requestId: string) => {
-    onUpdateStatus(requestId, 'completed', customVersion);
-    setSelectedReqForShip(null);
   };
 
   const handleExecutePurge = async () => {
@@ -200,7 +212,7 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-1">
-              Copy user proposals, assign shipping versions, award +2 CP rewards, and purge 7-day-old deployed submissions.
+              Copy user proposals, resolve bug reports (+3 CP reward), assign shipping versions, and purge old submissions.
             </p>
           </div>
         </div>
@@ -211,7 +223,7 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
             onClick={handleExecutePurge}
             disabled={isPurging || stats.purgeEligible === 0}
             className="flex items-center gap-1.5 px-3.5 py-2 bg-rose-950/80 hover:bg-rose-900 border border-rose-700/60 text-rose-200 rounded-xl text-xs font-bold transition disabled:opacity-50 shadow-md shadow-rose-950/40"
-            title="Deletes submissions deployed for more than 7 days from Firebase to save space. User profile points remain intact!"
+            title="Deletes submissions deployed for more than 7 days from Firebase to save space."
           >
             <Archive className="w-4 h-4 text-rose-400" />
             <span>{isPurging ? 'Purging Firebase...' : `Purge Old Shipped (${stats.purgeEligible})`}</span>
@@ -245,13 +257,45 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
           <div className="text-xl font-black text-emerald-300 mt-1">{stats.completed}</div>
         </div>
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5">
-          <div className="text-[11px] font-semibold text-rose-400">Spam / Rejected</div>
-          <div className="text-xl font-black text-rose-300 mt-1">{stats.rejected}</div>
+          <div className="text-[11px] font-semibold text-rose-400">Open Bug Reports</div>
+          <div className="text-xl font-black text-rose-300 mt-1">{stats.openBugs}</div>
         </div>
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5">
           <div className="text-[11px] font-semibold text-purple-400">7-Day Purge Ready</div>
           <div className="text-xl font-black text-purple-300 mt-1">{stats.purgeEligible}</div>
         </div>
+      </div>
+
+      {/* Admin Tab Switcher: Requests vs Bug Reports */}
+      <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
+        <button
+          onClick={() => setActiveAdminTab('requests')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+            activeAdminTab === 'requests'
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+              : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+          }`}
+        >
+          <Wrench className="w-4 h-4" />
+          <span>Feature Requests ({requests.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveAdminTab('bugs')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+            activeAdminTab === 'bugs'
+              ? 'bg-rose-600 text-white shadow-md shadow-rose-500/20'
+              : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+          }`}
+        >
+          <Bug className="w-4 h-4 text-rose-400" />
+          <span>Broken Feature Reports ({issues.length})</span>
+          {stats.openBugs > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full bg-rose-950 text-rose-300 font-mono text-[10px]">
+              {stats.openBugs} open
+            </span>
+          )}
+        </button>
       </div>
 
       {/* Filter & Search Bar */}
@@ -262,121 +306,192 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search proposals, details, authors..."
+            placeholder={activeAdminTab === 'requests' ? 'Search requests...' : 'Search bug reports...'}
             className="w-full bg-transparent text-xs text-white focus:outline-hidden"
           />
         </div>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto text-xs">
-          {[
-            { id: 'all', label: 'All' },
-            { id: 'pending', label: 'Pending' },
-            { id: 'in_progress', label: 'In Dev' },
-            { id: 'completed', label: 'Shipped' },
-            { id: 'rejected', label: 'Rejected' },
-          ].map((st) => (
-            <button
-              key={st.id}
-              onClick={() => setStatusFilter(st.id)}
-              className={`px-3 py-1.5 rounded-xl font-semibold border transition ${
-                statusFilter === st.id
-                  ? 'bg-blue-600 border-blue-500 text-white'
-                  : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
-              }`}
-            >
-              {st.label}
-            </button>
-          ))}
-        </div>
+        {activeAdminTab === 'requests' && (
+          <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto">
+            <Filter className="w-4 h-4 text-slate-500 shrink-0" />
+            {['all', 'pending', 'in_progress', 'completed', 'rejected'].map((st) => (
+              <button
+                key={st}
+                onClick={() => setStatusFilter(st)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize transition ${
+                  statusFilter === st
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-slate-950 border border-slate-800 text-slate-400 hover:text-white'
+                }`}
+              >
+                {st.replace('_', ' ')}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Main Request Proposals List */}
-      <div className="space-y-3">
-        {filteredRequests.length === 0 ? (
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center text-slate-500 text-xs">
-            No submissions found matching criteria.
-          </div>
-        ) : (
-          filteredRequests.map((req) => {
-            const isOld = oldShippedRequests.some((o) => o.id === req.id);
-            const daysSinceDeployed = req.deployedAt
-              ? Math.floor((Date.now() - new Date(req.deployedAt).getTime()) / (1000 * 60 * 60 * 24))
-              : null;
+      {/* CONTENT AREA: BUG REPORTS */}
+      {activeAdminTab === 'bugs' ? (
+        <div className="space-y-3">
+          {filteredIssues.length === 0 ? (
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center text-slate-500 text-xs">
+              No bug reports found.
+            </div>
+          ) : (
+            filteredIssues.map((issue) => (
+              <div
+                key={issue.id}
+                className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-2xl p-5 shadow-lg space-y-3 transition"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-bold text-white">Tool: {issue.toolName}</h3>
+                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded uppercase font-bold ${
+                        issue.status === 'resolved'
+                          ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
+                          : 'bg-rose-950 text-rose-300 border border-rose-800'
+                      }`}>
+                        {issue.status}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-300 mt-2 leading-relaxed bg-slate-950 p-3 rounded-xl border border-slate-800">
+                      {issue.description}
+                    </p>
+                  </div>
+                </div>
 
-            return (
+                <div className="flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-800/80 pt-3 flex-wrap gap-2">
+                  <div>
+                    Reported by <strong className="text-white">{issue.reporterName}</strong> on {new Date(issue.createdAt).toLocaleDateString()}
+                  </div>
+
+                  {issue.status === 'open' ? (
+                    <div className="flex items-center gap-2">
+                      {resolvingIssueId === issue.id ? (
+                        <div className="flex items-center gap-2 flex-wrap bg-slate-950 p-2 rounded-xl border border-slate-800">
+                          <input
+                            type="text"
+                            value={fixNotes}
+                            onChange={(e) => setFixNotes(e.target.value)}
+                            placeholder="Fix description notes..."
+                            className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1 text-xs text-white font-mono"
+                          />
+                          <button
+                            onClick={() => {
+                              onResolveIssue(issue.id, fixNotes);
+                              setResolvingIssueId(null);
+                            }}
+                            className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold"
+                          >
+                            Confirm Fix (+3 CP)
+                          </button>
+                          <button
+                            onClick={() => setResolvingIssueId(null)}
+                            className="px-2 py-1 bg-slate-800 text-slate-400 text-xs rounded-lg"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setResolvingIssueId(issue.id)}
+                          className="px-3.5 py-1.5 bg-emerald-950 hover:bg-emerald-900 border border-emerald-700/60 text-emerald-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                          <span>Resolve Bug & Award +3 CP</span>
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-emerald-400 font-semibold flex items-center gap-1">
+                      <Check className="w-3.5 h-3.5" /> Fixed (+3 CP Awarded)
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      ) : (
+        /* CONTENT AREA: FEATURE REQUESTS */
+        <div className="space-y-3">
+          {filteredRequests.length === 0 ? (
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center text-slate-500 text-xs">
+              No feature requests match your search filter.
+            </div>
+          ) : (
+            filteredRequests.map((req) => (
               <div
                 key={req.id}
-                className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4 hover:border-slate-700 transition"
+                className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-2xl p-5 shadow-lg space-y-4 transition"
               >
                 {/* Header info */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
-                  <div className="flex items-center gap-2.5 flex-wrap">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase border ${
-                      req.status === 'completed'
-                        ? 'bg-emerald-950 text-emerald-300 border-emerald-800'
-                        : req.status === 'in_progress'
-                        ? 'bg-cyan-950 text-cyan-300 border-cyan-800'
-                        : req.status === 'rejected'
-                        ? 'bg-rose-950 text-rose-300 border-rose-800'
-                        : 'bg-amber-950 text-amber-300 border-amber-800'
-                    }`}>
-                      {req.status.replace('_', ' ')}
-                    </span>
-                    <span className="text-xs font-mono text-slate-500">{req.id}</span>
-                    <span className="text-xs text-slate-400">• Category: <strong className="text-slate-300 capitalize">{req.category}</strong></span>
-                    {req.completedVersion && (
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800">
-                        Shipped in {req.completedVersion}
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-mono font-bold text-slate-400">#{req.id.slice(-6)}</span>
+                      <h3 className="text-base font-bold text-white">{req.title}</h3>
+                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded uppercase font-bold ${
+                        req.status === 'completed'
+                          ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
+                          : req.status === 'in_progress'
+                          ? 'bg-cyan-950 text-cyan-300 border border-cyan-800'
+                          : req.status === 'rejected'
+                          ? 'bg-rose-950 text-rose-300 border border-rose-800'
+                          : 'bg-amber-950 text-amber-300 border border-amber-800'
+                      }`}>
+                        {req.status.replace('_', ' ')}
                       </span>
-                    )}
-                    {isOld && (
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800 flex items-center gap-1">
-                        <AlertTriangle className="w-3 h-3" /> Deployed {daysSinceDeployed}d ago (Eligible for Purge)
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 uppercase">
+                        {req.category}
                       </span>
-                    )}
-                  </div>
-
-                  <div className="text-[11px] text-slate-400">
-                    By <strong className="text-white">{req.authorName}</strong> ({req.isGuest ? 'Guest' : 'Registered User'})
-                  </div>
-                </div>
-
-                {/* Proposal Title & Description */}
-                <div>
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-base font-extrabold text-white">{req.title}</h3>
-                    <button
-                      onClick={() => handleCopyTitleOnly(req.title, req.id)}
-                      className="text-[11px] text-slate-400 hover:text-cyan-300 flex items-center gap-1"
-                      title="Copy Feature Name"
-                    >
-                      {copiedId === `title-${req.id}` ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                      <span>Copy Name</span>
-                    </button>
-                  </div>
-                  <p className="text-xs text-slate-300 mt-2 whitespace-pre-wrap leading-relaxed bg-slate-950/80 p-3.5 rounded-xl border border-slate-800/80 font-mono">
-                    {req.description}
-                  </p>
-                </div>
-
-                {/* Ship / Version Drawer */}
-                {selectedReqForShip === req.id && (
-                  <div className="p-4 bg-slate-950 border border-blue-800/60 rounded-xl space-y-3 animate-in fade-in">
-                    <div className="text-xs font-bold text-blue-300 flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-blue-400" />
-                      <span>Ship & Deploy Feature (+2 CP will be awarded to {req.authorName})</span>
                     </div>
+                    <p className="text-xs text-slate-300 leading-relaxed mt-1">
+                      {req.description}
+                    </p>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <div className="text-sm font-black text-amber-400 font-mono">▲ {req.votes}</div>
+                    <div className="text-[10px] text-slate-500">Votes</div>
+                  </div>
+                </div>
+
+                {/* Author & Date metadata */}
+                <div className="flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-800/80 pt-3">
+                  <div className="flex items-center gap-2">
+                    <span>Submitted by <strong className="text-slate-200">{req.authorName}</strong> {req.isGuest && '(Guest)'}</span>
+                    <span>•</span>
+                    <span>{new Date(req.createdAt).toLocaleDateString()}</span>
+                  </div>
+
+                  {req.completedVersion && (
+                    <div className="text-emerald-400 font-mono font-bold">
+                      Shipped in {req.completedVersion} (+2 CP)
+                    </div>
+                  )}
+                </div>
+
+                {/* Version Selector for Shipping */}
+                {selectedReqForShip === req.id && (
+                  <div className="p-3.5 bg-emerald-950/40 border border-emerald-800/80 rounded-xl space-y-2.5">
+                    <div className="text-xs font-bold text-emerald-300">Assign Version for Deployment (+2 CP Reward):</div>
                     <div className="flex items-center gap-2">
                       <input
                         type="text"
                         value={customVersion}
                         onChange={(e) => setCustomVersion(e.target.value)}
-                        placeholder="Version (e.g. v1.2.0)"
-                        className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white font-mono"
+                        placeholder="v1.1.0"
+                        className="bg-slate-900 border border-emerald-700/60 rounded-lg px-3 py-1.5 text-xs text-white font-mono w-32"
                       />
                       <button
-                        onClick={() => handleShipFeature(req.id)}
-                        className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition shadow-md"
+                        onClick={() => {
+                          onUpdateStatus(req.id, 'completed', customVersion);
+                          setSelectedReqForShip(null);
+                        }}
+                        className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition"
                       >
                         Confirm Ship & Award +2 CP
                       </button>
@@ -390,13 +505,10 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
                   </div>
                 )}
 
-                {/* Reject drawer */}
+                {/* Rejection Reason Selector */}
                 {rejectingReqId === req.id && (
-                  <div className="p-4 bg-slate-950 border border-rose-800/60 rounded-xl space-y-3 animate-in fade-in">
-                    <div className="text-xs font-bold text-rose-300 flex items-center gap-1.5">
-                      <AlertTriangle className="w-4 h-4 text-rose-400" />
-                      <span>Reject Proposal (-5 CP Penalty)</span>
-                    </div>
+                  <div className="p-3.5 bg-rose-950/40 border border-rose-800/80 rounded-xl space-y-2.5">
+                    <div className="text-xs font-bold text-rose-300">Reason for Rejection (-5 CP Penalty):</div>
                     <input
                       type="text"
                       value={rejectionReason}
@@ -473,10 +585,10 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
                   </div>
                 </div>
               </div>
-            );
-          })
-        )}
-      </div>
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 };

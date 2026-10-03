@@ -36,6 +36,20 @@ export interface ToolUsageStat {
   lastUsedAt: string;
 }
 
+export interface ToolIssue {
+  id: string;
+  toolId: string;
+  toolName: string;
+  description: string;
+  reporterId: string;
+  reporterName: string;
+  status: 'open' | 'resolved' | 'dismissed';
+  fixNotes?: string;
+  pointsAwarded: number; // +3 CP for successful fix
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Badge {
   id: string;
   name: string;

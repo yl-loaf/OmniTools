@@ -214,3 +214,21 @@ export function getLocalUsers(): UserProfile[] {
 export function saveLocalUsers(users: UserProfile[]) {
   localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(users));
 }
+
+// Tool Issues / Bug Reports Storage
+const LOCAL_ISSUES_KEY = 'omnitools_issues_local';
+
+export function getLocalIssues(): import('../types').ToolIssue[] {
+  try {
+    const data = localStorage.getItem(LOCAL_ISSUES_KEY);
+    if (!data) return [];
+    return JSON.parse(data);
+  } catch {
+    return [];
+  }
+}
+
+export function saveLocalIssues(issues: import('../types').ToolIssue[]) {
+  localStorage.setItem(LOCAL_ISSUES_KEY, JSON.stringify(issues));
+}
+

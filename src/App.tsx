@@ -10,6 +10,7 @@ import { QuickSearchModal } from './components/QuickSearchModal';
 import { FavoritesHub } from './components/FavoritesHub';
 import { ActiveToolHeader } from './components/ActiveToolHeader';
 import { HomePage } from './components/HomePage';
+import { ReportBugModal } from './components/ReportBugModal';
 import { TOOLS_REGISTRY, DEFAULT_FAVORITE_IDS } from './data/toolsRegistry';
 
 // Existing Tools
@@ -58,7 +59,7 @@ import { ToolRequestHub } from './components/ToolRequestHub';
 import { AdminPortal } from './components/AdminPortal';
 import { Leaderboard } from './components/Leaderboard';
 import { TieredBadges } from './components/TieredBadges';
-import { ToolRequest, UserProfile, RequestStatus, FirebaseCustomConfig, ADMIN_EMAIL, ToolUsageStat } from './types';
+import { ToolRequest, UserProfile, RequestStatus, FirebaseCustomConfig, ADMIN_EMAIL, ToolUsageStat, ToolIssue } from './types';
 import { APP_VERSION } from '../version.js';
 import {
   initFirebase,
@@ -67,6 +68,8 @@ import {
   saveLocalRequests,
   getLocalUsers,
   saveLocalUsers,
+  getLocalIssues,
+  saveLocalIssues,
   loginWithGoogle,
   loginAsGuest,
   logoutUser
@@ -145,8 +148,12 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<string>(getInitialTab);
   const [favoriteIds, setFavoriteIds] = useState<string[]>(getInitialFavorites);
   const [usageCounts, setUsageCounts] = useState<Record<string, number>>(getInitialUsageCounts);
+  const [issues, setIssues] = useState<ToolIssue[]>(getLocalIssues());
   const [firebaseModalOpen, setFirebaseModalOpen] = useState(false);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [activeReportTool, setActiveReportTool] = useState<{ id: string; name: string } | null>(null);
+
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [firebaseConfig, setFirebaseConfig] = useState<FirebaseCustomConfig | null>(getSavedFirebaseConfig());
 
@@ -202,6 +209,94 @@ export default function App() {
   useEffect(() => {
     trackToolUsage(activeTab);
   }, [activeTab]);
+
+  // Report Bug Modal Handlers
+  const handleOpenReportModal = (toolId: string, toolName: string) => {
+    setActiveReportTool({ id: toolId, name: toolName });
+    setReportModalOpen(true);
+  };
+
+  const handleSubmitBugReport = async (issueData: Omit<ToolIssue, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'pointsAwarded'>) => {
+    const newIssue: ToolIssue = {
+      ...issueData,
+      id: `issue-${Date.now()}`,
+      status: 'open',
+      pointsAwarded: 3, // +3 CP reward
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    const updated = [newIssue, ...issues];
+    setIssues(updated);
+    saveLocalIssues(updated);
+
+    const { db, isConfigured } = initFirebase();
+    if (isConfigured && db) {
+      try {
+        await setDoc(doc(db, 'tool_issues', newIssue.id), newIssue);
+      } catch (e) {
+        console.warn('Firestore create issue error:', e);
+      }
+    }
+
+    showToast('Bug report submitted! If fixed by admin, you will receive +3 CP reward. 🐞', 'success');
+  };
+
+  const handleResolveIssue = async (issueId: string, fixNotes: string) => {
+    const target = issues.find((i) => i.id === issueId);
+    if (!target) return;
+
+    const nowIso = new Date().toISOString();
+    const updatedIssue: ToolIssue = {
+      ...target,
+      status: 'resolved',
+      fixNotes,
+      updatedAt: nowIso,
+    };
+
+    const updatedIssues = issues.map((i) => (i.id === issueId ? updatedIssue : i));
+    setIssues(updatedIssues);
+    saveLocalIssues(updatedIssues);
+
+    // Award +3 CP to reporter
+    const reporterUser = users.find((u) => u.uid === target.reporterId);
+    if (reporterUser) {
+      const newCp = reporterUser.contributionPoints + 3;
+      const updatedReporter: UserProfile = {
+        ...reporterUser,
+        contributionPoints: newCp,
+        updatedAt: nowIso,
+      };
+      const updatedUsers = users.map((u) => (u.uid === reporterUser.uid ? updatedReporter : u));
+      setUsers(updatedUsers);
+      saveLocalUsers(updatedUsers);
+
+      if (currentUser?.uid === reporterUser.uid) {
+        setCurrentUser(updatedReporter);
+        localStorage.setItem('omnitools_current_user', JSON.stringify(updatedReporter));
+      }
+    }
+
+    const { db, isConfigured } = initFirebase();
+    if (isConfigured && db) {
+      try {
+        await updateDoc(doc(db, 'tool_issues', issueId), {
+          status: 'resolved',
+          fixNotes,
+          updatedAt: nowIso,
+        });
+
+        await updateDoc(doc(db, 'users', target.reporterId), {
+          contributionPoints: increment(3),
+          updatedAt: nowIso,
+        });
+      } catch (e) {
+        console.warn('Firestore resolve issue error:', e);
+      }
+    }
+
+    showToast(`Bug fixed! +3 CP awarded to ${target.reporterName}. 🎉`, 'success');
+  };
 
   // Toggle favorite
   const handleToggleFavorite = async (toolId: string) => {
@@ -376,11 +471,27 @@ export default function App() {
         }
       );
 
+      // 5. Real-time Tool Issues Listener
+      const unsubIssues = onSnapshot(
+        query(collection(db, 'tool_issues'), orderBy('createdAt', 'desc')),
+        (snapshot) => {
+          const loaded: ToolIssue[] = [];
+          snapshot.forEach((d) => loaded.push(d.data() as ToolIssue));
+          setIssues(loaded);
+          saveLocalIssues(loaded);
+        },
+        (error) => {
+          console.warn('Firestore tool_issues listener fallback:', error);
+          setIssues(getLocalIssues());
+        }
+      );
+
       return () => {
         unsubAuth();
         unsubRequests();
         unsubUsers();
         unsubStats();
+        unsubIssues();
       };
     } else {
       // Local Storage & Google Sheets Fallback Mode
@@ -902,6 +1013,7 @@ export default function App() {
             usageCount={usageCounts[activeTab] || 0}
             onToggleFavorite={handleToggleFavorite}
             onNavigateFavorites={() => setActiveTab('favorites')}
+            onReportBug={handleOpenReportModal}
           />
         )}
 
@@ -975,8 +1087,10 @@ export default function App() {
           <AdminPortal
             currentUser={currentUser}
             requests={requests}
+            issues={issues}
             users={users}
             onUpdateStatus={handleUpdateStatus}
+            onResolveIssue={handleResolveIssue}
             onPurgeOldRequests={handlePurgeOldRequests}
             onDeleteRequest={handleDeleteRequest}
             onLoginGoogle={handleLoginGoogle}
@@ -1029,6 +1143,19 @@ export default function App() {
         favoriteIds={favoriteIds}
         onToggleFavorite={handleToggleFavorite}
       />
+
+      {activeReportTool && (
+        <ReportBugModal
+          isOpen={reportModalOpen}
+          onClose={() => setReportModalOpen(false)}
+          toolId={activeReportTool.id}
+          toolName={activeReportTool.name}
+          currentUser={currentUser}
+          isGuest={isGuest}
+          onSubmitIssue={handleSubmitBugReport}
+          onOpenAuth={handleLoginGoogle}
+        />
+      )}
     </div>
   );
 }

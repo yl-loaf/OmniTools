@@ -1,6 +1,6 @@
 import React from 'react';
 import { TOOLS_REGISTRY } from '../data/toolsRegistry';
-import { Star, Activity, Sparkles, Flame } from 'lucide-react';
+import { Star, Activity, Sparkles, Flame, AlertCircle } from 'lucide-react';
 
 interface ActiveToolHeaderProps {
   activeTab: string;
@@ -8,6 +8,7 @@ interface ActiveToolHeaderProps {
   usageCount?: number;
   onToggleFavorite: (toolId: string) => void;
   onNavigateFavorites: () => void;
+  onReportBug: (toolId: string, toolName: string) => void;
 }
 
 export const ActiveToolHeader: React.FC<ActiveToolHeaderProps> = ({
@@ -16,6 +17,7 @@ export const ActiveToolHeader: React.FC<ActiveToolHeaderProps> = ({
   usageCount = 0,
   onToggleFavorite,
   onNavigateFavorites,
+  onReportBug,
 }) => {
   const tool = TOOLS_REGISTRY.find((t) => t.id === activeTab);
   if (!tool) return null;
@@ -44,6 +46,15 @@ export const ActiveToolHeader: React.FC<ActiveToolHeaderProps> = ({
       </div>
 
       <div className="flex items-center gap-2">
+        <button
+          onClick={() => onReportBug(tool.id, tool.name)}
+          className="flex items-center gap-1 px-2.5 py-1.5 bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 rounded-xl text-xs font-semibold transition border border-rose-800/60"
+          title="Report a broken feature or bug (+3 CP reward when fixed)"
+        >
+          <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+          <span>Report Bug</span>
+        </button>
+
         <button
           onClick={() => onToggleFavorite(tool.id)}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition border ${
