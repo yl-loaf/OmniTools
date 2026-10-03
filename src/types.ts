@@ -53,6 +53,7 @@ export interface UserProfile {
   lastActiveDate: string;
   unlockedBadgeIds: string[];
   shippedTools?: ShippedToolRecord[];
+  favoriteToolIds?: string[];
   createdAt: string;
   updatedAt: string;
 }

@@ -39,7 +39,8 @@ import {
   Terminal,
   Server,
   Keyboard,
-  Waves
+  Waves,
+  Star
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -53,6 +54,8 @@ interface NavbarProps {
   firebaseConfig: FirebaseCustomConfig | null;
   onOpenFirebaseModal: () => void;
   onOpenSearch: () => void;
+  favoriteIds?: string[];
+  onToggleFavorite?: (toolId: string) => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -66,6 +69,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   firebaseConfig,
   onOpenFirebaseModal,
   onOpenSearch,
+  favoriteIds = [],
+  onToggleFavorite = () => {},
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [toolsDropdownOpen, setToolsDropdownOpen] = useState(false);
@@ -209,33 +214,54 @@ export const Navbar: React.FC<NavbarProps> = ({
                         {cat.items.map((item) => {
                           const Icon = item.icon;
                           const isCurrent = activeTab === item.id;
+                          const isFav = favoriteIds.includes(item.id);
+
                           return (
-                            <button
+                            <div
                               key={item.id}
-                              onClick={() => {
-                                setActiveTab(item.id);
-                                setToolsDropdownOpen(false);
-                              }}
-                              className={`w-full text-left p-2 rounded-xl transition flex items-start gap-2.5 group ${
+                              className={`w-full flex items-center justify-between p-2 rounded-xl transition group ${
                                 isCurrent
                                   ? 'bg-blue-600 text-white'
                                   : 'hover:bg-slate-800 text-slate-300 hover:text-white'
                               }`}
                             >
-                              <div className={`p-1.5 rounded-lg shrink-0 ${
-                                isCurrent ? 'bg-blue-700 text-white' : 'bg-slate-800 group-hover:bg-slate-700 text-blue-400'
-                              }`}>
-                                <Icon className="w-4 h-4" />
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <div className="text-xs font-semibold truncate">
-                                  {item.label}
+                              <button
+                                onClick={() => {
+                                  setActiveTab(item.id);
+                                  setToolsDropdownOpen(false);
+                                }}
+                                className="flex items-start gap-2.5 text-left flex-1 min-w-0"
+                              >
+                                <div className={`p-1.5 rounded-lg shrink-0 ${
+                                  isCurrent ? 'bg-blue-700 text-white' : 'bg-slate-800 group-hover:bg-slate-700 text-blue-400'
+                                }`}>
+                                  <Icon className="w-4 h-4" />
                                 </div>
-                                <div className={`text-[10px] truncate ${isCurrent ? 'text-blue-100' : 'text-slate-500 group-hover:text-slate-400'}`}>
-                                  {item.desc}
+                                <div className="min-w-0 flex-1">
+                                  <div className="text-xs font-semibold truncate">
+                                    {item.label}
+                                  </div>
+                                  <div className={`text-[10px] truncate ${isCurrent ? 'text-blue-100' : 'text-slate-500 group-hover:text-slate-400'}`}>
+                                    {item.desc}
+                                  </div>
                                 </div>
-                              </div>
-                            </button>
+                              </button>
+
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onToggleFavorite(item.id);
+                                }}
+                                className={`p-1.5 rounded-lg transition shrink-0 ${
+                                  isFav
+                                    ? 'text-amber-400 hover:text-slate-400'
+                                    : 'text-slate-600 hover:text-amber-400 opacity-0 group-hover:opacity-100'
+                                }`}
+                                title={isFav ? 'Remove from favorites' : 'Star tool'}
+                              >
+                                <Star className={`w-3.5 h-3.5 ${isFav ? 'fill-amber-400 text-amber-400' : ''}`} />
+                              </button>
+                            </div>
                           );
                         })}
                       </div>
@@ -244,6 +270,28 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </div>
               )}
             </div>
+
+            {/* My Favorites Tab */}
+            <button
+              onClick={() => setActiveTab('favorites')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition border ${
+                activeTab === 'favorites'
+                  ? 'bg-amber-500 text-slate-950 border-amber-400 font-bold shadow-xs shadow-amber-500/30'
+                  : favoriteIds.length > 0
+                  ? 'text-amber-300 bg-amber-950/40 border-amber-800/60 hover:bg-amber-900/60 hover:text-white'
+                  : 'text-slate-400 bg-slate-900 border-slate-800 hover:bg-slate-800 hover:text-white'
+              }`}
+            >
+              <Star className={`w-3.5 h-3.5 ${favoriteIds.length > 0 ? 'fill-amber-400 text-amber-400' : 'text-slate-400'}`} />
+              <span>Favorites</span>
+              {favoriteIds.length > 0 && (
+                <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
+                  activeTab === 'favorites' ? 'bg-slate-950 text-amber-300' : 'bg-amber-900 text-amber-200'
+                }`}>
+                  {favoriteIds.length}
+                </span>
+              )}
+            </button>
 
             {/* Quick Primary Tab Links */}
             <button
@@ -372,13 +420,23 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
           <div className="lg:hidden py-4 border-t border-slate-800 max-h-[80vh] overflow-y-auto space-y-3">
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-1.5">
+              <button
+                onClick={() => {
+                  setActiveTab('favorites');
+                  setMobileMenuOpen(false);
+                }}
+                className="p-2.5 bg-amber-950/60 border border-amber-800/60 text-amber-200 rounded-xl text-[11px] font-bold text-center flex flex-col items-center gap-1"
+              >
+                <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                <span>Favorites</span>
+              </button>
               <button
                 onClick={() => {
                   setActiveTab('request-hub');
                   setMobileMenuOpen(false);
                 }}
-                className="p-2.5 bg-purple-950/60 border border-purple-800/60 text-purple-200 rounded-xl text-xs font-bold text-left flex items-center gap-1.5"
+                className="p-2.5 bg-purple-950/60 border border-purple-800/60 text-purple-200 rounded-xl text-[11px] font-bold text-center flex flex-col items-center gap-1"
               >
                 <MessageSquarePlus className="w-4 h-4 text-purple-400" />
                 <span>Requests</span>
@@ -388,9 +446,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                   setActiveTab('leaderboard');
                   setMobileMenuOpen(false);
                 }}
-                className="p-2.5 bg-amber-950/60 border border-amber-800/60 text-amber-200 rounded-xl text-xs font-bold text-left flex items-center gap-1.5"
+                className="p-2.5 bg-blue-950/60 border border-blue-800/60 text-blue-200 rounded-xl text-[11px] font-bold text-center flex flex-col items-center gap-1"
               >
-                <Trophy className="w-4 h-4 text-amber-400" />
+                <Trophy className="w-4 h-4 text-blue-400" />
                 <span>Ranks</span>
               </button>
               <button
@@ -398,7 +456,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   setActiveTab('admin');
                   setMobileMenuOpen(false);
                 }}
-                className="p-2.5 bg-rose-950/60 border border-rose-800/60 text-rose-200 rounded-xl text-xs font-bold text-left flex items-center gap-1.5"
+                className="p-2.5 bg-rose-950/60 border border-rose-800/60 text-rose-200 rounded-xl text-[11px] font-bold text-center flex flex-col items-center gap-1"
               >
                 <ShieldCheck className="w-4 h-4 text-rose-400" />
                 <span>Admin</span>
@@ -414,22 +472,37 @@ export const Navbar: React.FC<NavbarProps> = ({
                   {cat.items.map((item) => {
                     const Icon = item.icon;
                     const isCurrent = activeTab === item.id;
+                    const isFav = favoriteIds.includes(item.id);
+
                     return (
-                      <button
+                      <div
                         key={item.id}
-                        onClick={() => {
-                          setActiveTab(item.id);
-                          setMobileMenuOpen(false);
-                        }}
-                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition ${
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition ${
                           isCurrent
                             ? 'bg-blue-600 text-white font-bold'
                             : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                         }`}
                       >
-                        <Icon className="w-4 h-4 text-blue-400" />
-                        <span className="truncate">{item.label}</span>
-                      </button>
+                        <button
+                          onClick={() => {
+                            setActiveTab(item.id);
+                            setMobileMenuOpen(false);
+                          }}
+                          className="flex items-center gap-2 flex-1 min-w-0 text-left"
+                        >
+                          <Icon className="w-4 h-4 text-blue-400 shrink-0" />
+                          <span className="truncate">{item.label}</span>
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onToggleFavorite(item.id);
+                          }}
+                          className="p-1 text-slate-500 hover:text-amber-400"
+                        >
+                          <Star className={`w-3.5 h-3.5 ${isFav ? 'fill-amber-400 text-amber-400' : ''}`} />
+                        </button>
+                      </div>
                     );
                   })}
                 </div>

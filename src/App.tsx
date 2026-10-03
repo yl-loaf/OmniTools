@@ -7,6 +7,9 @@ import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { FirebaseModal } from './components/FirebaseModal';
 import { QuickSearchModal } from './components/QuickSearchModal';
+import { FavoritesHub } from './components/FavoritesHub';
+import { ActiveToolHeader } from './components/ActiveToolHeader';
+import { TOOLS_REGISTRY, DEFAULT_FAVORITE_IDS } from './data/toolsRegistry';
 
 // Existing Tools
 import { ScientificCalculator } from './components/tools/ScientificCalculator';
@@ -73,7 +76,7 @@ import {
   query,
   orderBy
 } from 'firebase/firestore';
-import { CheckCircle2, AlertTriangle, Sparkles, Database } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Sparkles, Database, Star } from 'lucide-react';
 
 export default function App() {
   const getInitialTab = () => {
@@ -86,7 +89,19 @@ export default function App() {
     return 'calculator';
   };
 
+  const getInitialFavorites = (): string[] => {
+    try {
+      const saved = localStorage.getItem('omnitools_favorite_tools');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {}
+    return DEFAULT_FAVORITE_IDS;
+  };
+
   const [activeTab, setActiveTab] = useState<string>(getInitialTab);
+  const [favoriteIds, setFavoriteIds] = useState<string[]>(getInitialFavorites);
   const [firebaseModalOpen, setFirebaseModalOpen] = useState(false);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [isAdminMode, setIsAdminMode] = useState(false);
@@ -106,6 +121,48 @@ export default function App() {
   const showToast = (message: string, type: 'success' | 'penalty' | 'info' = 'info') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
+  };
+
+  // Toggle favorite
+  const handleToggleFavorite = async (toolId: string) => {
+    const isFav = favoriteIds.includes(toolId);
+    const newFavorites = isFav
+      ? favoriteIds.filter((id) => id !== toolId)
+      : [...favoriteIds, toolId];
+
+    setFavoriteIds(newFavorites);
+    localStorage.setItem('omnitools_favorite_tools', JSON.stringify(newFavorites));
+
+    const toolMeta = TOOLS_REGISTRY.find((t) => t.id === toolId);
+    const toolName = toolMeta?.name || 'Tool';
+
+    if (isFav) {
+      showToast(`Removed "${toolName}" from favorites.`, 'info');
+    } else {
+      showToast(`Starred "${toolName}" to My Favorites! ⭐`, 'success');
+    }
+
+    if (currentUser) {
+      const updatedUser: UserProfile = {
+        ...currentUser,
+        favoriteToolIds: newFavorites,
+        updatedAt: new Date().toISOString(),
+      };
+      setCurrentUser(updatedUser);
+      localStorage.setItem('omnitools_current_user', JSON.stringify(updatedUser));
+
+      const { db, isConfigured } = initFirebase();
+      if (isConfigured && db) {
+        try {
+          await updateDoc(doc(db, 'users', currentUser.uid), {
+            favoriteToolIds: newFavorites,
+            updatedAt: new Date().toISOString(),
+          });
+        } catch (e) {
+          console.warn('Sync favorites error:', e);
+        }
+      }
+    }
   };
 
   // Global keyboard shortcut for quick search (Ctrl+K or Cmd+K)
@@ -150,6 +207,7 @@ export default function App() {
             lastActiveDate: new Date().toISOString().split('T')[0],
             unlockedBadgeIds: [],
             shippedTools: [],
+            favoriteToolIds: favoriteIds,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           };
@@ -204,7 +262,13 @@ export default function App() {
 
           if (auth.currentUser) {
             const found = loadedUsers.find((u) => u.uid === auth.currentUser?.uid);
-            if (found) setCurrentUser(found);
+            if (found) {
+              setCurrentUser(found);
+              if (found.favoriteToolIds && found.favoriteToolIds.length > 0) {
+                setFavoriteIds(found.favoriteToolIds);
+                localStorage.setItem('omnitools_favorite_tools', JSON.stringify(found.favoriteToolIds));
+              }
+            }
           }
         },
         (error) => {
@@ -267,7 +331,7 @@ export default function App() {
     if (isConfigured && auth) {
       try {
         await loginWithGoogle(auth);
-        showToast('Signed in with Google! Contribution points will now be saved.', 'success');
+        showToast('Signed in with Google! Contribution points and favorites will now be saved.', 'success');
       } catch (err: any) {
         showToast(`Google Sign-In: ${err.message}`, 'penalty');
       }
@@ -287,6 +351,7 @@ export default function App() {
           { id: 'tool-md', name: 'Markdown Studio', version: 'v1.0.2', completedAt: new Date().toISOString() },
           { id: 'tool-finance', name: 'Finance Calculator', version: 'v1.0.2', completedAt: new Date().toISOString() },
         ],
+        favoriteToolIds: favoriteIds,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -325,6 +390,7 @@ export default function App() {
         lastActiveDate: new Date().toISOString().split('T')[0],
         unlockedBadgeIds: [],
         shippedTools: [],
+        favoriteToolIds: favoriteIds,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -685,6 +751,9 @@ export default function App() {
     showToast(`Loaded ${importedRequests.length} requests from Google Sheets!`, 'success');
   };
 
+  // Determine if active view is a tool (for displaying tool header with star button)
+  const isToolView = TOOLS_REGISTRY.some((t) => t.id === activeTab);
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
       {/* Toast Notification Container */}
@@ -719,10 +788,31 @@ export default function App() {
         firebaseConfig={firebaseConfig}
         onOpenFirebaseModal={() => setFirebaseModalOpen(true)}
         onOpenSearch={() => setSearchModalOpen(true)}
+        favoriteIds={favoriteIds}
+        onToggleFavorite={handleToggleFavorite}
       />
 
       {/* Active Tab View */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Active Tool Header with 1-Click Star Button */}
+        {isToolView && (
+          <ActiveToolHeader
+            activeTab={activeTab}
+            favoriteIds={favoriteIds}
+            onToggleFavorite={handleToggleFavorite}
+            onNavigateFavorites={() => setActiveTab('favorites')}
+          />
+        )}
+
+        {/* My Favorites Hub */}
+        {activeTab === 'favorites' && (
+          <FavoritesHub
+            favoriteIds={favoriteIds}
+            onToggleFavorite={handleToggleFavorite}
+            onSelectTool={(id) => setActiveTab(id)}
+          />
+        )}
+
         {/* Core Tools */}
         {activeTab === 'calculator' && <ScientificCalculator />}
         {activeTab === 'timer' && <PomodoroTimer />}
@@ -813,6 +903,8 @@ export default function App() {
         onClose={() => setSearchModalOpen(false)}
         onSelectTab={(tabId) => setActiveTab(tabId)}
         requests={requests}
+        favoriteIds={favoriteIds}
+        onToggleFavorite={handleToggleFavorite}
       />
     </div>
   );

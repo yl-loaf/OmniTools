@@ -1,0 +1,82 @@
+import {
+  Calculator,
+  Timer,
+  Type,
+  ArrowRightLeft,
+  QrCode,
+  FileText,
+  Braces,
+  Database,
+  GitCompare,
+  Code,
+  ShieldCheck,
+  Terminal,
+  Clock,
+  Keyboard,
+  Palette,
+  Layers,
+  Maximize,
+  Globe,
+  Image,
+  Lock,
+  Key,
+  FileSpreadsheet,
+  Code2,
+  Server,
+  DollarSign,
+  Waves
+} from 'lucide-react';
+
+export interface ToolMeta {
+  id: string;
+  name: string;
+  shortLabel: string;
+  desc: string;
+  icon: any;
+  category: 'Developer' | 'Design' | 'Data & Security' | 'Math & Finance' | 'Productivity';
+  badge?: string;
+}
+
+export const TOOLS_REGISTRY: ToolMeta[] = [
+  // Developer
+  { id: 'markdown', name: 'Markdown Studio & Live Previewer', shortLabel: 'Markdown Studio', desc: 'GFM live preview, table editor & HTML export', icon: FileText, category: 'Developer', badge: 'Popular' },
+  { id: 'json-studio', name: 'JSON & TypeScript Studio', shortLabel: 'JSON Studio', desc: 'Format, validate, tree explorer & TS interfaces', icon: Braces, category: 'Developer', badge: 'Essential' },
+  { id: 'sql-formatter', name: 'SQL Query Beautifier', shortLabel: 'SQL Formatter', desc: 'Format ANSI, MySQL & Postgres queries', icon: Database, category: 'Developer' },
+  { id: 'diff-checker', name: 'Text & Code Diff Inspector', shortLabel: 'Diff Checker', desc: 'Side-by-side line & char diff comparison', icon: GitCompare, category: 'Developer' },
+  { id: 'regex-tester', name: 'Regex Lab & Tester', shortLabel: 'Regex Lab', desc: 'Pattern tester, replace & regex presets', icon: Code, category: 'Developer' },
+  { id: 'jwt-debugger', name: 'JWT Debugger & Inspector', shortLabel: 'JWT Debugger', desc: 'Decode header, payload claims & timestamps', icon: ShieldCheck, category: 'Developer' },
+  { id: 'curl-builder', name: 'cURL & API Code Builder', shortLabel: 'cURL Builder', desc: 'cURL to Fetch, Python & Axios generator', icon: Terminal, category: 'Developer' },
+  { id: 'cron-gen', name: 'Cron Expression Scheduler', shortLabel: 'Cron Scheduler', desc: '5-field visual builder & plain English', icon: Clock, category: 'Developer' },
+  { id: 'chmod-calc', name: 'Linux chmod Calculator', shortLabel: 'chmod Calculator', desc: 'Numeric octal 755/644 & symbolic perms', icon: Terminal, category: 'Developer' },
+  { id: 'keycode-tester', name: 'KeyCode & Event Tester', shortLabel: 'KeyCode Tester', desc: 'Inspect JS key, code, which & modifiers', icon: Keyboard, category: 'Developer' },
+
+  // Design
+  { id: 'color-studio', name: 'Color Harmony & Contrast Studio', shortLabel: 'Color Studio', desc: 'Harmonies, WCAG 2.1 contrast & gradients', icon: Palette, category: 'Design', badge: 'Design' },
+  { id: 'css-generator', name: 'CSS Glass & Shadow Studio', shortLabel: 'CSS Generator', desc: 'Glassmorphism, multi-shadows & clip paths', icon: Layers, category: 'Design' },
+  { id: 'dimension-calc', name: 'Aspect Ratio & DPI Solver', shortLabel: 'Aspect Ratio & DPI', desc: 'Resolution solver, print DPI & video size', icon: Maximize, category: 'Design' },
+  { id: 'meta-gen', name: 'SEO & Meta Card Studio', shortLabel: 'Meta Tags / OG', desc: 'OpenGraph, Twitter card & search preview', icon: Globe, category: 'Design' },
+  { id: 'svg-optimizer', name: 'SVG Vector Cleaner', shortLabel: 'SVG Cleaner', desc: 'Minify vector paths & generate Data URIs', icon: Image, category: 'Design' },
+  { id: 'qr-generator', name: 'QR Code Generator', shortLabel: 'QR Generator', desc: 'Scannable URLs, Wi-Fi & vCards', icon: QrCode, category: 'Design', badge: 'Utility' },
+  { id: 'barcode-gen', name: 'Universal Barcode Studio', shortLabel: 'Barcode Studio', desc: 'Code 128 scannable vector barcodes', icon: QrCode, category: 'Design' },
+
+  // Data & Security
+  { id: 'crypto-encoder', name: 'Base64 & Hash Crypto Suite', shortLabel: 'Base64 & Hashes', desc: 'Base64 images/text & SHA-256 / SHA-512', icon: Lock, category: 'Data & Security', badge: 'Crypto' },
+  { id: 'password-gen', name: 'Password & UUID Generator', shortLabel: 'Password & UUID', desc: 'NIST passwords, passphrases & UUID v4', icon: Key, category: 'Data & Security', badge: 'Security' },
+  { id: 'csv-viewer', name: 'CSV Data Grid & JSON Studio', shortLabel: 'CSV Viewer', desc: 'Spreadsheet viewer, search & markdown', icon: FileSpreadsheet, category: 'Data & Security' },
+  { id: 'html-entities', name: 'HTML Entity Encoder', shortLabel: 'HTML Entities', desc: 'Escape special symbols & unicode codes', icon: Code2, category: 'Data & Security' },
+  { id: 'http-lookup', name: 'HTTP Status Code Lookup', shortLabel: 'HTTP Codes', desc: 'REST API 2xx, 3xx, 4xx, 5xx definitions', icon: Server, category: 'Data & Security' },
+
+  // Math & Finance
+  { id: 'calculator', name: 'Omni Scientific Calculator', shortLabel: 'Calculator', desc: 'Trig, exponents, parentheses & memory', icon: Calculator, category: 'Math & Finance', badge: 'Math' },
+  { id: 'finance-calc', name: 'Financial & Loan Studio', shortLabel: 'Finance Studio', desc: 'Mortgage amortization & compound growth', icon: DollarSign, category: 'Math & Finance', badge: 'Finance' },
+  { id: 'unit-converter', name: 'Universal Unit Converter', shortLabel: 'Unit Converter', desc: 'Convert length, weight, data & speed', icon: ArrowRightLeft, category: 'Math & Finance' },
+
+  // Productivity
+  { id: 'time-converter', name: 'Time & World Clocks', shortLabel: 'Time & Clocks', desc: 'Unix timestamps & world timezones', icon: Clock, category: 'Productivity' },
+  { id: 'timer', name: 'Pomodoro & Lap Timer', shortLabel: 'Pomodoro Timer', desc: 'Focus intervals & lap stopwatch', icon: Timer, category: 'Productivity', badge: 'Focus' },
+  { id: 'text-tools', name: 'Text & String Transformation', shortLabel: 'Text Tools', desc: 'Case conversions, word count & diff', icon: Type, category: 'Productivity' },
+  { id: 'lorem-gen', name: 'Lorem Ipsum Generator', shortLabel: 'Lorem Ipsum', desc: 'Mock copy paragraphs, words & HTML tags', icon: FileText, category: 'Productivity' },
+  { id: 'sound-synth', name: 'Binaural Beats & White Noise', shortLabel: 'Noise & Binaural', desc: 'White/pink noise & theta focus waves', icon: Waves, category: 'Productivity', badge: 'Audio' },
+];
+
+export const DEFAULT_FAVORITE_IDS = ['calculator', 'markdown', 'json-studio', 'color-studio', 'password-gen', 'finance-calc'];
