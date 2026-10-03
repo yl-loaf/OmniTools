@@ -1,0 +1,58 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile with gamified contribution points and unlocked badges",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "photoURL": { "type": "string", "maxLength": 500 },
+        "email": { "type": "string", "maxLength": 200 },
+        "contributionPoints": { "type": "number" },
+        "generatedCount": { "type": "number" },
+        "rejectedCount": { "type": "number" },
+        "submittedCount": { "type": "number" },
+        "streakDays": { "type": "number" },
+        "lastActiveDate": { "type": "string", "maxLength": 50 },
+        "createdAt": { "type": "string", "maxLength": 50 },
+        "updatedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["uid", "displayName", "contributionPoints"]
+    },
+    "ToolRequest": {
+      "title": "ToolRequest",
+      "description": "A public tool request submitted by a user or guest",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 150 },
+        "description": { "type": "string", "maxLength": 2000 },
+        "category": { "type": "string", "maxLength": 50 },
+        "status": { "type": "string", "enum": ["pending", "in_progress", "completed", "rejected"] },
+        "completedVersion": { "type": "string", "maxLength": 50 },
+        "authorId": { "type": "string", "maxLength": 128 },
+        "authorName": { "type": "string", "maxLength": 100 },
+        "authorPhoto": { "type": "string", "maxLength": 500 },
+        "isGuest": { "type": "boolean" },
+        "pointsAwarded": { "type": "number" },
+        "rejectionReason": { "type": "string", "maxLength": 500 },
+        "votes": { "type": "number" },
+        "voters": { "type": "array" },
+        "createdAt": { "type": "string", "maxLength": 50 },
+        "updatedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "title", "description", "status", "authorId", "authorName"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile document storing points and achievements"
+    },
+    "/tool_requests/{requestId}": {
+      "schema": "ToolRequest",
+      "description": "Community feature and tool requests"
+    }
+  }
+}

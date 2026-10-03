@@ -1,0 +1,6 @@
+{
+  "name": "OmniTools - Community Utility Hub & Feature Builder",
+  "description": "A community-driven multi-utility toolkit. Explore everyday calculators, timers, text converters, and QR generators, or request new tools to earn Contribution Points (CP) on the leaderboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
