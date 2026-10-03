@@ -9,6 +9,8 @@ export const ScientificCalculator: React.FC = () => {
   const [memory, setMemory] = useState<number>(0);
   const [lastAns, setLastAns] = useState<number>(0);
   const [fractionMode, setFractionMode] = useState<boolean>(true); // Fraction display by default
+  const [rawDecimalResult, setRawDecimalResult] = useState<number | null>(null);
+  const [showAsDecimal, setShowAsDecimal] = useState<boolean>(false);
 
   // Helper to convert decimal to simplified fraction string
   const toFraction = (decimal: number): string => {
@@ -18,12 +20,10 @@ export const ScientificCalculator: React.FC = () => {
     const sign = decimal < 0 ? '-' : '';
     let abs = Math.abs(decimal);
 
-    // If whole number
     if (Number.isInteger(abs)) {
       return sign + abs.toString();
     }
 
-    // Convert decimal to fraction using Euclidean algorithm approximation
     let tolerance = 1.05e-6;
     let h1 = 1, h2 = 0, k1 = 0, k2 = 1;
     let b = abs;
@@ -49,7 +49,6 @@ export const ScientificCalculator: React.FC = () => {
       return sign + numerator;
     }
 
-    // Improper fraction vs mixed number
     if (numerator > denominator && fractionMode) {
       const whole = Math.floor(numerator / denominator);
       const rem = numerator % denominator;
@@ -62,10 +61,20 @@ export const ScientificCalculator: React.FC = () => {
   const handleButtonClick = (val: string) => {
     if (val === 'AC' || val === 'C') {
       setDisplay('0');
+      setRawDecimalResult(null);
     } else if (val === 'DEL' || val === 'CE') {
       setDisplay((prev) => (prev.length > 1 ? prev.slice(0, -1) : '0'));
     } else if (val === 'Ans') {
       setDisplay((prev) => (prev === '0' ? String(lastAns) : prev + lastAns));
+    } else if (val === 'SD') {
+      if (rawDecimalResult !== null) {
+        setShowAsDecimal(!showAsDecimal);
+        if (!showAsDecimal) {
+          setDisplay(String(rawDecimalResult));
+        } else {
+          setDisplay(toFraction(rawDecimalResult));
+        }
+      }
     } else if (val === 'M+') {
       try {
         const valNum = Function(`"use strict"; return (${display})`)();
@@ -112,18 +121,20 @@ export const ScientificCalculator: React.FC = () => {
 
         const res = Function(`"use strict"; return (${expr})`)();
         setLastAns(res);
+        setRawDecimalResult(res);
+        setShowAsDecimal(false);
 
         let outputVal = String(res);
         if (typeof res === 'number' && !isNaN(res) && isFinite(res)) {
-          if (fractionMode && !Number.isInteger(res) && Math.abs(res) < 10000 && Math.abs(res) > 0.0001) {
-            outputVal = `${Number(res).toFixed(4)} (${toFraction(res)})`;
+          if (fractionMode && !Number.isInteger(res) && Math.abs(res) < 10000 && Math.abs(res) > 0.000001) {
+            outputVal = toFraction(res);
           } else {
             outputVal = Number.isInteger(res) ? String(res) : Number(res).toFixed(6).replace(/\.?0+$/, '');
           }
         }
 
         setHistory([`${display} = ${outputVal}`, ...history.slice(0, 9)]);
-        setDisplay(outputVal.split(' ')[0]); // display numerical or decimal part
+        setDisplay(outputVal);
       } catch {
         setDisplay('Error');
       }
@@ -151,7 +162,7 @@ export const ScientificCalculator: React.FC = () => {
             <h2 className="text-xl font-extrabold text-white">Advanced Scientific Calculator</h2>
           </div>
           <p className="text-xs text-slate-400 mt-1">
-            Natural textbook display, trigonometric & hyperbolic functions, fractions, memory registers, and angle modes.
+            Natural textbook display with exact fraction output by default. Use S&hArr;D to toggle decimal format.
           </p>
         </div>
 
@@ -163,7 +174,14 @@ export const ScientificCalculator: React.FC = () => {
             {angleMode}
           </button>
           <button
-            onClick={() => setFractionMode(!fractionMode)}
+            onClick={() => {
+              setFractionMode(!fractionMode);
+              if (rawDecimalResult !== null && !fractionMode) {
+                setDisplay(toFraction(rawDecimalResult));
+              } else if (rawDecimalResult !== null) {
+                setDisplay(String(rawDecimalResult));
+              }
+            }}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition border ${
               fractionMode ? 'bg-emerald-950 border-emerald-700 text-emerald-300' : 'bg-slate-800 border-slate-700 text-slate-400'
             }`}
@@ -182,7 +200,7 @@ export const ScientificCalculator: React.FC = () => {
               <span className="flex items-center gap-2">
                 <span className="text-cyan-400 font-bold">{angleMode}</span>
                 {memory !== 0 && <span className="text-amber-400 font-bold">M ({memory})</span>}
-                {fractionMode && <span className="text-emerald-400 font-bold">a b/c</span>}
+                {fractionMode && <span className="text-emerald-400 font-bold">Frac Mode</span>}
               </span>
               <span className="truncate">{history[0] || ''}</span>
             </div>
@@ -199,7 +217,7 @@ export const ScientificCalculator: React.FC = () => {
             </div>
           </div>
 
-          {/* Keypad Grid (Advanced Functions) */}
+          {/* Keypad Grid */}
           <div className="grid grid-cols-6 gap-1.5 text-xs font-bold">
             {/* Row 1: Memory & Clear */}
             {['MC', 'MR', 'M+', 'M-', 'AC', 'DEL'].map((btn) => (
@@ -273,10 +291,11 @@ export const ScientificCalculator: React.FC = () => {
                 |x|
               </button>
               <button
-                onClick={() => handleButtonClick('/')}
-                className="p-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700/60 font-mono text-xs"
+                onClick={() => handleButtonClick('SD')}
+                className="p-3 bg-indigo-950 hover:bg-indigo-900 text-indigo-300 rounded-lg border border-indigo-700/60 font-mono text-xs font-bold"
+                title="Toggle Standard (Fraction) <=> Decimal"
               >
-                a/b
+                S&hArr;D
               </button>
             </div>
 
@@ -337,20 +356,20 @@ export const ScientificCalculator: React.FC = () => {
               </button>
             ))}
             <div className="col-span-3 text-center text-[10px] text-slate-500 self-center">
-              Natural Textbook Display
+              Exact Fraction Display & S&hArr;D Toggle
             </div>
           </div>
         </div>
 
-        {/* History & Memory Log */}
+        {/* History & Info */}
         <div className="space-y-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3 shadow-xl">
             <h3 className="text-xs font-bold text-white flex items-center gap-1.5 uppercase tracking-wider">
               <History className="w-3.5 h-3.5 text-emerald-400" />
-              Calculation History & Fraction Viewer
+              Fraction Mode & S&hArr;D Toggle
             </h3>
             <p className="text-[11px] text-slate-400 leading-relaxed">
-              Results automatically compute decimal values alongside simplified fractions (e.g., <code>1 3/4</code>) using natural textbook format.
+              When fraction mode is enabled, calculations like <code>3 ÷ 4</code> show as <strong>3/4</strong> or <code>7 ÷ 4</code> as <strong>1 3/4</strong> by default. Click the <code className="text-indigo-300">S&hArr;D</code> button anytime to toggle between the exact fraction and its decimal form.
             </p>
           </div>
 
@@ -370,7 +389,7 @@ export const ScientificCalculator: React.FC = () => {
                   <div
                     key={i}
                     onClick={() => {
-                      const res = h.split(' = ')[1]?.split(' ')[0];
+                      const res = h.split(' = ')[1];
                       if (res) setDisplay(res);
                     }}
                     className="p-2 rounded-lg bg-slate-950 hover:bg-slate-800 text-xs font-mono text-slate-300 cursor-pointer flex justify-between items-center transition border border-slate-800"
