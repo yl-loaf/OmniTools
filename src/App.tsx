@@ -7,11 +7,41 @@ import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { FirebaseModal } from './components/FirebaseModal';
 import { QuickSearchModal } from './components/QuickSearchModal';
+
+// Existing Tools
 import { ScientificCalculator } from './components/tools/ScientificCalculator';
 import { PomodoroTimer } from './components/tools/PomodoroTimer';
 import { TextTools } from './components/tools/TextTools';
 import { UnitConverter } from './components/tools/UnitConverter';
 import { QrGenerator } from './components/tools/QrGenerator';
+
+// New 20 Tools
+import { MarkdownEditor } from './components/tools/MarkdownEditor';
+import { JsonFormatter } from './components/tools/JsonFormatter';
+import { ColorStudio } from './components/tools/ColorStudio';
+import { CryptoEncoder } from './components/tools/CryptoEncoder';
+import { RegexTester } from './components/tools/RegexTester';
+import { PasswordGenerator } from './components/tools/PasswordGenerator';
+import { FinanceCalculator } from './components/tools/FinanceCalculator';
+import { CssGenerator } from './components/tools/CssGenerator';
+import { TimeConverter } from './components/tools/TimeConverter';
+import { DimensionCalculator } from './components/tools/DimensionCalculator';
+import { SqlFormatter } from './components/tools/SqlFormatter';
+import { DiffChecker } from './components/tools/DiffChecker';
+import { MetaTagGenerator } from './components/tools/MetaTagGenerator';
+import { HtmlEntityEncoder } from './components/tools/HtmlEntityEncoder';
+import { CsvViewer } from './components/tools/CsvViewer';
+import { JwtDebugger } from './components/tools/JwtDebugger';
+import { CronGenerator } from './components/tools/CronGenerator';
+import { SvgOptimizer } from './components/tools/SvgOptimizer';
+import { LoremIpsumGenerator } from './components/tools/LoremIpsumGenerator';
+import { BarcodeGenerator } from './components/tools/BarcodeGenerator';
+import { ChmodCalculator } from './components/tools/ChmodCalculator';
+import { HttpStatusLookup } from './components/tools/HttpStatusLookup';
+import { KeycodeEventTester } from './components/tools/KeycodeEventTester';
+import { CurlBuilder } from './components/tools/CurlBuilder';
+import { SoundBinauralGenerator } from './components/tools/SoundBinauralGenerator';
+
 import { ToolRequestHub } from './components/ToolRequestHub';
 import { Leaderboard } from './components/Leaderboard';
 import { TieredBadges } from './components/TieredBadges';
@@ -47,13 +77,7 @@ export default function App() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const toolParam = params.get('tool');
-      if (toolParam === 'calculator') return 'calculator';
-      if (toolParam === 'timer') return 'timer';
-      if (toolParam === 'text-tools') return 'text-tools';
-      if (toolParam === 'unit-converter') return 'unit-converter';
-      if (toolParam === 'qr-generator') return 'qr-generator';
-      if (toolParam === 'request' || toolParam === 'request-hub') return 'request-hub';
-      if (toolParam === 'leaderboard') return 'leaderboard';
+      if (toolParam) return toolParam;
     }
     return 'calculator';
   };
@@ -92,7 +116,7 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, []);
 
-  // Initialize data sources on mount (fix potential infinite re-render loop by using empty dependency array [])
+  // Initialize data sources on mount
   useEffect(() => {
     const savedConfig = getSavedFirebaseConfig();
     setFirebaseConfig(savedConfig);
@@ -208,7 +232,6 @@ export default function App() {
         .then((sheetReqs) => {
           if (sheetReqs && sheetReqs.length > 0) {
             const merged = [...sheetReqs];
-            // Merge any unique unsynced local requests
             for (const lr of localReqs) {
               if (!merged.some((mr) => mr.id === lr.id)) {
                 merged.push(lr);
@@ -232,16 +255,17 @@ export default function App() {
         await loginWithGoogle(auth);
         showToast('Signed in with Google! Contribution points will now be saved.', 'success');
       } catch (err: any) {
-        showToast(`Sign in error: ${err?.message || 'Could not complete login'}`, 'penalty');
+        showToast(`Google Sign-In: ${err.message}`, 'penalty');
       }
     } else {
       const mockUser: UserProfile = {
-        uid: 'user-' + Math.random().toString(36).substring(2, 8),
-        displayName: 'Community Builder',
-        contributionPoints: 4,
-        generatedCount: 2,
+        uid: `google-${Date.now()}`,
+        displayName: 'Demo Google User',
+        email: 'user@example.com',
+        contributionPoints: 2,
+        generatedCount: 1,
         rejectedCount: 0,
-        submittedCount: 2,
+        submittedCount: 1,
         streakDays: 1,
         lastActiveDate: new Date().toISOString().split('T')[0],
         unlockedBadgeIds: ['first-spark'],
@@ -252,10 +276,11 @@ export default function App() {
       setIsGuest(false);
       localStorage.setItem('omnitools_current_user', JSON.stringify(mockUser));
 
-      const updatedUsers = [mockUser, ...users.filter((u) => u.uid !== mockUser.uid)];
+      const updatedUsers = [mockUser, ...users.filter(u => u.uid !== mockUser.uid)];
       setUsers(updatedUsers);
       saveLocalUsers(updatedUsers);
-      showToast('Signed in in local mode! Contribution points tracking active.', 'success');
+
+      showToast('Signed in in local mode! Connect Firebase in settings for live multi-user sync.', 'info');
     }
   };
 
@@ -264,14 +289,15 @@ export default function App() {
     if (isConfigured && auth) {
       try {
         await loginAsGuest(auth);
-        showToast('Continuing as Guest. Sign in with Google to save points on the leaderboard!', 'info');
+        showToast('Signed in as Guest. Propose tools and test features anonymously.', 'info');
       } catch (err: any) {
-        showToast(`Guest error: ${err?.message || 'Could not sign in'}`, 'penalty');
+        showToast(`Guest login: ${err.message}`, 'penalty');
       }
     } else {
+      const guestId = `guest-${Math.floor(1000 + Math.random() * 9000)}`;
       const guestUser: UserProfile = {
-        uid: `guest-${Math.random().toString(36).substring(2, 6)}`,
-        displayName: 'Guest User',
+        uid: guestId,
+        displayName: `Guest #${guestId.slice(-4)}`,
         contributionPoints: 0,
         generatedCount: 0,
         rejectedCount: 0,
@@ -285,7 +311,7 @@ export default function App() {
       setCurrentUser(guestUser);
       setIsGuest(true);
       localStorage.setItem('omnitools_current_user', JSON.stringify(guestUser));
-      showToast('Continuing as Guest.', 'info');
+      showToast('Signed in as Guest (Anonymous Mode).', 'info');
     }
   };
 
@@ -297,20 +323,26 @@ export default function App() {
     setCurrentUser(null);
     setIsGuest(false);
     localStorage.removeItem('omnitools_current_user');
-    showToast('Signed out.', 'info');
+    showToast('Signed out successfully.', 'info');
   };
 
-  // Gamification: Daily check-in bonus
-  const canClaimDaily = () => {
+  // Gamification: Daily Check-in (+1 CP)
+  const canClaimDaily = (): boolean => {
     if (!currentUser || isGuest) return false;
     const today = new Date().toISOString().split('T')[0];
     return currentUser.lastActiveDate !== today;
   };
 
   const handleClaimDailyCheckIn = async () => {
-    if (!currentUser || isGuest) return;
+    if (!currentUser || isGuest) {
+      showToast('Please sign in with a registered account to claim daily rewards.', 'penalty');
+      return;
+    }
+
     const today = new Date().toISOString().split('T')[0];
-    const newStreak = currentUser.streakDays + 1;
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    const isConsecutive = currentUser.lastActiveDate === yesterday;
+    const newStreak = isConsecutive ? (currentUser.streakDays || 0) + 1 : 1;
     const newPoints = currentUser.contributionPoints + 1;
 
     const updated: UserProfile = {
@@ -318,6 +350,7 @@ export default function App() {
       contributionPoints: newPoints,
       streakDays: newStreak,
       lastActiveDate: today,
+      updatedAt: new Date().toISOString(),
     };
 
     setCurrentUser(updated);
@@ -329,9 +362,10 @@ export default function App() {
           contributionPoints: increment(1),
           streakDays: newStreak,
           lastActiveDate: today,
+          updatedAt: new Date().toISOString(),
         });
       } catch (err) {
-        console.warn('Daily check-in Firestore sync error:', err);
+        console.warn('Firestore daily check-in sync error:', err);
       }
     } else {
       const updatedUsers = users.map((u) => (u.uid === currentUser.uid ? updated : u));
@@ -340,17 +374,15 @@ export default function App() {
       localStorage.setItem('omnitools_current_user', JSON.stringify(updated));
     }
 
-    showToast(`Claimed daily reward! +1 Contribution Point (Streak: ${newStreak} Days) 🔥`, 'success');
+    showToast(`Claimed daily reward! +1 CP (Streak: ${newStreak} days 🔥)`, 'success');
   };
 
+  // Gamification: Purchase Streak Freeze
   const handleBuyStreakFreeze = async () => {
-    if (!currentUser || isGuest) {
-      showToast('Sign in with Google to purchase streak freezes!', 'penalty');
-      return;
-    }
-    const cost = 5;
+    if (!currentUser) return;
+    const cost = 10;
     if (currentUser.contributionPoints < cost) {
-      showToast(`Not enough CP! Streak freeze costs ${cost} CP (You have ${currentUser.contributionPoints} CP).`, 'penalty');
+      showToast(`Not enough points! You need ${cost} CP to buy a Streak Freeze.`, 'penalty');
       return;
     }
 
@@ -420,7 +452,7 @@ export default function App() {
     showToast('Your tool idea has been submitted to the public queue!', 'success');
   };
 
-  // Update Status (+2 CP for completed/generated, -5 CP for inappropriate rejection)
+  // Update Status (+2 CP for completed, -5 CP for inappropriate rejection)
   const handleUpdateStatus = async (
     requestId: string,
     status: RequestStatus,
@@ -512,7 +544,11 @@ export default function App() {
     const updated = requests.map((r) => {
       if (r.id === requestId) {
         const newVotes = Math.max(0, (r.votes || 0) + delta);
-        return { ...r, votes: newVotes };
+        return {
+          ...r,
+          votes: newVotes,
+          updatedAt: new Date().toISOString(),
+        };
       }
       return r;
     });
@@ -520,15 +556,18 @@ export default function App() {
     setRequests(updated);
     saveLocalRequests(updated);
 
+    const targetReq = updated.find((r) => r.id === requestId);
+    if (targetReq) {
+      syncPromptToGoogleSheet(targetReq, 'update');
+    }
+
     const { db, isConfigured } = initFirebase();
     if (isConfigured && db) {
       try {
-        const reqDoc = updated.find((r) => r.id === requestId);
-        if (reqDoc) {
-          await updateDoc(doc(db, 'tool_requests', requestId), {
-            votes: reqDoc.votes,
-          });
-        }
+        await updateDoc(doc(db, 'tool_requests', requestId), {
+          votes: increment(delta),
+          updatedAt: new Date().toISOString(),
+        });
       } catch (e) {
         console.warn('Vote sync error:', e);
       }
@@ -589,11 +628,41 @@ export default function App() {
 
       {/* Active Tab View */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Core Tools */}
         {activeTab === 'calculator' && <ScientificCalculator />}
         {activeTab === 'timer' && <PomodoroTimer />}
         {activeTab === 'text-tools' && <TextTools />}
         {activeTab === 'unit-converter' && <UnitConverter />}
         {activeTab === 'qr-generator' && <QrGenerator />}
+
+        {/* 20 New Suite Tools */}
+        {activeTab === 'markdown' && <MarkdownEditor />}
+        {activeTab === 'json-studio' && <JsonFormatter />}
+        {activeTab === 'color-studio' && <ColorStudio />}
+        {activeTab === 'crypto-encoder' && <CryptoEncoder />}
+        {activeTab === 'regex-tester' && <RegexTester />}
+        {activeTab === 'password-gen' && <PasswordGenerator />}
+        {activeTab === 'finance-calc' && <FinanceCalculator />}
+        {activeTab === 'css-generator' && <CssGenerator />}
+        {activeTab === 'time-converter' && <TimeConverter />}
+        {activeTab === 'dimension-calc' && <DimensionCalculator />}
+        {activeTab === 'sql-formatter' && <SqlFormatter />}
+        {activeTab === 'diff-checker' && <DiffChecker />}
+        {activeTab === 'meta-gen' && <MetaTagGenerator />}
+        {activeTab === 'html-entities' && <HtmlEntityEncoder />}
+        {activeTab === 'csv-viewer' && <CsvViewer />}
+        {activeTab === 'jwt-debugger' && <JwtDebugger />}
+        {activeTab === 'cron-gen' && <CronGenerator />}
+        {activeTab === 'svg-optimizer' && <SvgOptimizer />}
+        {activeTab === 'lorem-gen' && <LoremIpsumGenerator />}
+        {activeTab === 'barcode-gen' && <BarcodeGenerator />}
+        {activeTab === 'chmod-calc' && <ChmodCalculator />}
+        {activeTab === 'http-lookup' && <HttpStatusLookup />}
+        {activeTab === 'keycode-tester' && <KeycodeEventTester />}
+        {activeTab === 'curl-builder' && <CurlBuilder />}
+        {activeTab === 'sound-synth' && <SoundBinauralGenerator />}
+
+        {/* Community & Gamification */}
         {activeTab === 'request-hub' && (
           <ToolRequestHub
             requests={requests}
@@ -621,47 +690,20 @@ export default function App() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div>
-            <span>OmniTools Hub</span> •{' '}
-            <span className="font-mono text-cyan-400">v{APP_VERSION}</span> •{' '}
-            <span>Community Web Utilities</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <a href="./tools.html" className="hover:text-slate-300">
-              tools.html Directory
-            </a>
-            <button
-              onClick={() => setFirebaseModalOpen(true)}
-              className="text-slate-400 hover:text-white flex items-center gap-1"
-            >
-              <Database className="w-3.5 h-3.5" />
-              <span>Firebase Settings</span>
-            </button>
-          </div>
-        </div>
-      </footer>
-
-      {/* Firebase Custom Configuration Modal */}
+      {/* Modals */}
       <FirebaseModal
         isOpen={firebaseModalOpen}
         onClose={() => setFirebaseModalOpen(false)}
         onConfigUpdated={() => {
           setFirebaseConfig(getSavedFirebaseConfig());
-          showToast('Firebase configuration updated and synced!', 'success');
+          showToast('Firebase configuration updated successfully!', 'success');
         }}
       />
 
-      {/* Quick Search Command Palette Modal (Activated by button or Esc / Ctrl+K) */}
       <QuickSearchModal
         isOpen={searchModalOpen}
         onClose={() => setSearchModalOpen(false)}
-        onSelectTab={(tabId) => {
-          setActiveTab(tabId);
-          setSearchModalOpen(false);
-        }}
+        onSelectTab={(tabId) => setActiveTab(tabId)}
         requests={requests}
       />
     </div>
