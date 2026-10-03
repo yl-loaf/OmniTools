@@ -338,7 +338,7 @@ export default function App() {
     } else {
       const mockUser: UserProfile = {
         uid: `admin-${Date.now()}`,
-        displayName: 'SmashyBlocks Admin',
+        displayName: 'Lead Platform Architect',
         email: ADMIN_EMAIL,
         contributionPoints: 10,
         generatedCount: 5,
@@ -364,7 +364,7 @@ export default function App() {
       setUsers(updatedUsers);
       saveLocalUsers(updatedUsers);
 
-      showToast(`Signed in as Executive Admin (${ADMIN_EMAIL})!`, 'success');
+      showToast('Signed in as Executive Platform Architect!', 'success');
     }
   };
 

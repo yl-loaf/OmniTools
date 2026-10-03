@@ -163,14 +163,14 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
         <div>
           <h2 className="text-xl font-extrabold text-white">Administrator Portal Restricted</h2>
           <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-            This dashboard is exclusively accessible by the platform architect (<code className="text-amber-300 font-mono font-semibold">{ADMIN_EMAIL}</code>) to copy feature requests, manage deployment versions, and run database retention maintenance.
+            This dashboard is exclusively accessible by the platform architect to copy feature requests, manage deployment versions, and run database retention maintenance.
           </p>
         </div>
 
         <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl text-xs text-slate-300 space-y-2 text-left font-mono">
           <div>Status: <span className="text-rose-400 font-bold">Unauthorized</span></div>
-          <div>Current Email: <span className="text-slate-400">{currentUser?.email || 'Not signed in'}</span></div>
-          <div>Required Account: <span className="text-amber-300 font-bold">{ADMIN_EMAIL}</span></div>
+          <div>Current Account: <span className="text-slate-400">{currentUser?.email ? 'Non-admin user' : 'Not signed in'}</span></div>
+          <div>Access Level: <span className="text-amber-300 font-bold">Authorized Administrator Required</span></div>
         </div>
 
         <button
@@ -178,7 +178,7 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
           className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20"
         >
           <LogIn className="w-4 h-4" />
-          <span>Sign In with {ADMIN_EMAIL}</span>
+          <span>Sign In with Admin Account</span>
         </button>
       </div>
     );
@@ -196,7 +196,7 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
             <div className="flex items-center gap-2">
               <h2 className="text-xl font-black text-white">Executive Administrator Portal</h2>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold">
-                {ADMIN_EMAIL}
+                Verified Architect
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-1">
