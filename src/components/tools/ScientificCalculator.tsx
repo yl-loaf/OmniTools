@@ -153,6 +153,41 @@ export const ScientificCalculator: React.FC = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  // Render display value (supporting beautiful stacked fractions)
+  const renderDisplay = () => {
+    const trimmed = display.trim();
+    const mixedMatch = trimmed.match(/^(-?\d+)\s+(\d+)\/(\d+)$/);
+    if (mixedMatch) {
+      const [, whole, num, den] = mixedMatch;
+      return (
+        <div className="flex items-center justify-end gap-2 text-3xl sm:text-5xl font-mono font-bold text-white">
+          <span className="text-4xl">{whole}</span>
+          <div className="inline-flex flex-col items-center justify-center text-center px-1.5">
+            <span className="border-b-3 border-emerald-400 pb-1 px-1.5 leading-none text-2xl sm:text-3xl text-emerald-300">{num}</span>
+            <span className="pt-1 px-1.5 leading-none text-2xl sm:text-3xl text-emerald-300">{den}</span>
+          </div>
+        </div>
+      );
+    }
+
+    const fracMatch = trimmed.match(/^(-?\d+)\/(\d+)$/);
+    if (fracMatch) {
+      const [, num, den] = fracMatch;
+      const isNegative = num.startsWith('-');
+      return (
+        <div className="flex items-center justify-end gap-1 text-4xl sm:text-5xl font-mono font-bold text-white">
+          {isNegative && <span>-</span>}
+          <div className="inline-flex flex-col items-center justify-center text-center px-1.5">
+            <span className="border-b-3 border-emerald-400 pb-1 px-1.5 leading-none text-3xl sm:text-4xl text-emerald-300">{num.replace('-', '')}</span>
+            <span className="pt-1 px-1.5 leading-none text-3xl sm:text-4xl text-emerald-300">{den}</span>
+          </div>
+        </div>
+      );
+    }
+
+    return <span className="text-4xl sm:text-6xl font-mono font-bold text-white tracking-tight">{display}</span>;
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-xl">
@@ -162,7 +197,7 @@ export const ScientificCalculator: React.FC = () => {
             <h2 className="text-xl font-extrabold text-white">Advanced Scientific Calculator</h2>
           </div>
           <p className="text-xs text-slate-400 mt-1">
-            Natural textbook display with exact fraction output by default. Use S&hArr;D to toggle decimal format.
+            Natural textbook display with stacked vertical fractions by default. Use S&hArr;D to toggle decimal format.
           </p>
         </div>
 
@@ -195,25 +230,25 @@ export const ScientificCalculator: React.FC = () => {
         {/* Main Calculator Pad */}
         <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-2xl">
           {/* Screen Display */}
-          <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 text-right">
-            <div className="flex justify-between items-center text-[11px] font-mono text-slate-500 mb-1">
+          <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 text-right min-h-[110px] flex flex-col justify-between">
+            <div className="flex justify-between items-center text-xs font-mono text-slate-500 mb-1">
               <span className="flex items-center gap-2">
                 <span className="text-cyan-400 font-bold">{angleMode}</span>
                 {memory !== 0 && <span className="text-amber-400 font-bold">M ({memory})</span>}
                 {fractionMode && <span className="text-emerald-400 font-bold">Frac Mode</span>}
               </span>
-              <span className="truncate">{history[0] || ''}</span>
+              <span className="truncate text-slate-400">{history[0] || ''}</span>
             </div>
-            <div className="text-3xl sm:text-4xl font-mono font-bold text-white tracking-tight overflow-x-auto mt-1 flex justify-between items-center">
+            <div className="flex justify-between items-center overflow-x-auto">
               <button
                 onClick={handleCopy}
-                className="p-1.5 text-slate-500 hover:text-slate-300 rounded-md transition text-xs flex items-center gap-1 font-sans"
+                className="p-1.5 text-slate-500 hover:text-slate-300 rounded-md transition text-xs flex items-center gap-1 font-sans shrink-0"
                 title="Copy result"
               >
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                 <span className="hidden sm:inline">{copied ? 'Copied' : 'Copy'}</span>
               </button>
-              <span>{display}</span>
+              <div className="py-1">{renderDisplay()}</div>
             </div>
           </div>
 
@@ -340,7 +375,7 @@ export const ScientificCalculator: React.FC = () => {
             ))}
             <button
               onClick={() => handleButtonClick('=')}
-              className="col-span-2 p-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold shadow-lg shadow-emerald-600/30"
+              className="col-span-2 p-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold shadow-lg shadow-emerald-600/30 text-base"
             >
               =
             </button>
@@ -350,13 +385,13 @@ export const ScientificCalculator: React.FC = () => {
               <button
                 key={btn}
                 onClick={() => handleButtonClick(btn)}
-                className="p-3 bg-slate-800 hover:bg-slate-700 text-slate-100 rounded-lg border border-slate-700/60 font-mono"
+                className="p-3 bg-slate-800 hover:bg-slate-700 text-slate-100 rounded-lg border border-slate-700/60 font-mono text-sm"
               >
                 {btn}
               </button>
             ))}
             <div className="col-span-3 text-center text-[10px] text-slate-500 self-center">
-              Exact Fraction Display & S&hArr;D Toggle
+              Stacked Vertical Fractions & S&hArr;D Toggle
             </div>
           </div>
         </div>
@@ -366,10 +401,10 @@ export const ScientificCalculator: React.FC = () => {
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3 shadow-xl">
             <h3 className="text-xs font-bold text-white flex items-center gap-1.5 uppercase tracking-wider">
               <History className="w-3.5 h-3.5 text-emerald-400" />
-              Fraction Mode & S&hArr;D Toggle
+              Textbook Fraction Rendering
             </h3>
             <p className="text-[11px] text-slate-400 leading-relaxed">
-              When fraction mode is enabled, calculations like <code>3 ÷ 4</code> show as <strong>3/4</strong> or <code>7 ÷ 4</code> as <strong>1 3/4</strong> by default. Click the <code className="text-indigo-300">S&hArr;D</code> button anytime to toggle between the exact fraction and its decimal form.
+              Fractions are rendered vertically with a clear horizontal divider bar, exactly like a textbook. Click <code className="text-indigo-300">S&hArr;D</code> anytime to switch to decimal format.
             </p>
           </div>
 

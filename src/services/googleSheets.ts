@@ -1,9 +1,14 @@
 import { ToolRequest } from '../types';
 
 const STORAGE_KEY_WEBHOOK_URL = 'community_tools_sheets_webhook';
+const DEFAULT_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwIBA8aRbpKuhIaZCcGsKM7rYC5UHu_LTTEa8A9yI4LjMJ-k4RupDiDRnxqLOQigeBl/exec';
 
 export function getSavedSheetsWebhookUrl(): string {
-  return localStorage.getItem(STORAGE_KEY_WEBHOOK_URL) || '';
+  const saved = localStorage.getItem(STORAGE_KEY_WEBHOOK_URL);
+  if (saved !== null) return saved;
+  // Default to user provided webhook url
+  localStorage.setItem(STORAGE_KEY_WEBHOOK_URL, DEFAULT_WEBHOOK_URL);
+  return DEFAULT_WEBHOOK_URL;
 }
 
 export function saveSheetsWebhookUrl(url: string) {
@@ -21,7 +26,7 @@ export async function syncPromptToGoogleSheet(
   if (!webhookUrl) {
     return {
       success: false,
-      message: 'No Google Sheets webhook configured. You can configure one in the Sheets Sync panel or copy formatted rows.',
+      message: 'No Google Sheets webhook configured.',
     };
   }
 
@@ -58,115 +63,82 @@ export async function syncPromptToGoogleSheet(
       success: true,
       message: `Prompt "${request.title}" synced to Google Sheets!`,
     };
-  } catch (err: any) {
-    console.error('Failed to sync to Google Sheet webhook:', err);
+  } catch (err) {
     return {
       success: false,
-      message: `Webhook sync failed: ${err?.message || 'Network error'}`,
+      message: `Google Sheets sync failed: ${err instanceof Error ? err.message : String(err)}`,
     };
   }
 }
 
-/**
- * Generates TSV (Tab Separated Values) for direct clipboard paste into Google Sheets
- */
 export function formatRequestsForSheetsClipboard(requests: ToolRequest[]): string {
-  const headers = [
-    'Request ID',
-    'Timestamp',
-    'Author Name',
-    'Account Type',
-    'Feature Title',
-    'User Prompt / Requirements',
-    'Category',
-    'Status',
-    'Shipped Website Version',
-    'Points Awarded (CP)',
-    'Rejection Reason',
-    'Upvotes'
-  ];
-
-  const rows = requests.map(r => [
+  const header = ['Request ID', 'Timestamp', 'Author Name', 'Author ID', 'Is Guest', 'Title', 'Prompt Description', 'Category', 'Status', 'Shipped Version', 'Points Awarded', 'Rejection Reason', 'Votes'].join('\t');
+  const rows = requests.map((r) => [
     r.id,
-    new Date(r.createdAt).toLocaleString(),
+    r.createdAt,
     r.authorName,
-    r.isGuest ? 'Guest' : 'Logged In',
-    r.title.replace(/\t/g, ' '),
-    r.description.replace(/[\t\n\r]/g, ' '),
+    r.authorId,
+    r.isGuest ? 'Yes' : 'No',
+    `"${r.title.replace(/"/g, '""')}"`,
+    `"${r.description.replace(/"/g, '""')}"`,
     r.category,
-    r.status.toUpperCase(),
-    r.completedVersion || 'Pending',
+    r.status,
+    r.completedVersion || '',
     r.pointsAwarded,
-    r.rejectionReason || 'None',
-    r.votes
-  ]);
+    `"${(r.rejectionReason || '').replace(/"/g, '""')}"`,
+    r.votes,
+  ].join('\t'));
 
-  return [headers.join('\t'), ...rows.map(row => row.join('\t'))].join('\n');
+  return [header, ...rows].join('\n');
 }
 
-/**
- * Downloads a CSV file for manual Google Sheets import
- */
 export function downloadRequestsCSV(requests: ToolRequest[]) {
-  const headers = [
-    'Request ID',
-    'Timestamp',
-    'Author Name',
-    'Account Type',
-    'Feature Title',
-    'User Prompt',
-    'Category',
-    'Status',
-    'Website Version',
-    'Points Awarded',
-    'Rejection Reason',
-    'Votes'
-  ];
-
-  const escapeCSV = (val: any) => `"${String(val ?? '').replace(/"/g, '""')}"`;
-
-  const rows = requests.map(r => [
-    escapeCSV(r.id),
-    escapeCSV(r.createdAt),
-    escapeCSV(r.authorName),
-    escapeCSV(r.isGuest ? 'Guest' : 'Logged In'),
-    escapeCSV(r.title),
-    escapeCSV(r.description),
-    escapeCSV(r.category),
-    escapeCSV(r.status),
-    escapeCSV(r.completedVersion || ''),
-    escapeCSV(r.pointsAwarded),
-    escapeCSV(r.rejectionReason || ''),
-    escapeCSV(r.votes),
-  ]);
-
-  const csvContent = [headers.map(escapeCSV).join(','), ...rows.map(r => r.join(','))].join('\n');
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const tsv = formatRequestsForSheetsClipboard(requests);
+  const blob = new Blob([tsv], { type: 'text/tab-separated-values;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.setAttribute('href', url);
-  link.setAttribute('download', `vex-community-prompts-${new Date().toISOString().split('T')[0]}.csv`);
+  link.setAttribute('download', `omnitools-requests-${new Date().toISOString().split('T')[0]}.tsv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
 }
 
-export const GOOGLE_APPS_SCRIPT_TEMPLATE = `// Paste this in Google Sheets > Extensions > Apps Script:
+export const GOOGLE_APPS_SCRIPT_TEMPLATE = `// Google Apps Script Web App for OmniTools Request Sync
 function doPost(e) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  if (sheet.getLastRow() === 0) {
-    sheet.appendRow([
-      "Request ID", "Timestamp", "Author", "Type", "Title",
-      "User Prompt", "Category", "Status", "Version", "CP", "Rejection Reason", "Votes"
-    ]);
-  }
   var data = JSON.parse(e.postData.contents);
-  sheet.appendRow([
-    data.id, data.timestamp, data.authorName, data.isGuest, data.title,
-    data.promptDescription, data.category, data.status, data.completedVersion,
-    data.pointsAwarded, data.rejectionReason, data.votes
-  ]);
-  return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
-    .setMimeType(ContentService.MimeType.JSON);
+  
+  if (data.action === 'create') {
+    sheet.appendRow([
+      data.id,
+      data.timestamp,
+      data.authorName,
+      data.authorId,
+      data.isGuest,
+      data.title,
+      data.promptDescription,
+      data.category,
+      data.status,
+      data.completedVersion,
+      data.pointsAwarded,
+      data.rejectionReason,
+      data.votes
+    ]);
+  } else if (data.action === 'update') {
+    var rows = sheet.getDataRange().getValues();
+    for (var i = 1; i < rows.length; i++) {
+      if (rows[i][0] === data.id) {
+        sheet.getRange(i + 1, 9).setValue(data.status); // Status
+        sheet.getRange(i + 1, 10).setValue(data.completedVersion); // Shipped Version
+        sheet.getRange(i + 1, 11).setValue(data.pointsAwarded); // Points
+        sheet.getRange(i + 1, 12).setValue(data.rejectionReason); // Rejection
+        sheet.getRange(i + 1, 13).setValue(data.votes); // Votes
+        break;
+      }
+    }
+  }
+  
+  return ContentService.createTextOutput(JSON.stringify({status: 'success'})).setMimeType(ContentService.MimeType.JSON);
 }
 `;
