@@ -39,6 +39,7 @@ export interface UserProfile {
   rejectedCount: number;
   submittedCount: number;
   streakDays: number;
+  streakFreezes?: number;
   lastActiveDate: string;
   unlockedBadgeIds: string[];
   createdAt: string;

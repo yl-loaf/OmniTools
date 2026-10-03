@@ -7,12 +7,14 @@ interface TieredBadgesProps {
   currentUser: UserProfile | null;
   onClaimDailyCheckIn?: () => void;
   canClaimDaily?: boolean;
+  onBuyStreakFreeze?: () => void;
 }
 
 export const TieredBadges: React.FC<TieredBadgesProps> = ({
   currentUser,
   onClaimDailyCheckIn,
   canClaimDaily = false,
+  onBuyStreakFreeze,
 }) => {
   const currentCP = currentUser?.contributionPoints || 0;
 
@@ -28,16 +30,19 @@ export const TieredBadges: React.FC<TieredBadgesProps> = ({
       <div className="bg-gradient-to-r from-blue-900/60 via-indigo-900/50 to-purple-900/60 border border-blue-700/40 rounded-2xl p-4 sm:p-6 shadow-xl">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-xs font-semibold flex items-center gap-1">
                 <Flame className="w-3.5 h-3.5 text-amber-400" />
                 Daily Streak: {currentUser?.streakDays || 0} Days
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 text-xs font-semibold flex items-center gap-1">
+                <span>🧊</span> Streak Freezes: {currentUser?.streakFreezes || 0}
               </span>
               <span className="text-xs text-blue-300 font-medium">Daily Participation Reward</span>
             </div>
             <h3 className="text-lg font-bold text-white">Keep your tool builder streak alive!</h3>
             <p className="text-xs text-slate-300 max-w-xl">
-              Log in daily to claim +1 CP, contribute tool ideas, and unlock elite community ranks. Ideas accepted and built into the site grant <strong>+2 CP</strong>!
+              Log in daily to claim +1 CP, contribute tool ideas, and unlock elite community ranks. Purchase streak freezes to protect your streak during missed days!
             </p>
           </div>
 
@@ -58,6 +63,25 @@ export const TieredBadges: React.FC<TieredBadgesProps> = ({
             <div className="text-xs text-slate-400 bg-slate-800/80 px-3 py-2 rounded-lg border border-slate-700">
               Sign in with Google to track points & streaks
             </div>
+          )}
+        </div>
+
+        {/* Streak Freeze Shop Banner */}
+        <div className="mt-4 pt-4 border-t border-slate-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5 text-cyan-300">
+            <span className="text-2xl">🧊</span>
+            <div>
+              <div className="font-bold text-white">Streak Freeze Protection Item</div>
+              <p className="text-[11px] text-slate-400">Protects your streak automatically if you miss a check-in day. Costs 5 CP.</p>
+            </div>
+          </div>
+          {currentUser && (
+            <button
+              onClick={onBuyStreakFreeze}
+              className="px-3.5 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl font-semibold transition shadow-xs flex items-center gap-1.5 shrink-0"
+            >
+              <span>Buy Streak Freeze (5 CP)</span>
+            </button>
           )}
         </div>
 
@@ -160,15 +184,15 @@ export const TieredBadges: React.FC<TieredBadgesProps> = ({
         </div>
 
         <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 flex items-start gap-3">
-          <div className="p-2 bg-rose-500/10 rounded-lg text-rose-400 shrink-0">
-            <ShieldAlert className="w-5 h-5" />
+          <div className="p-2 bg-cyan-500/10 rounded-lg text-cyan-400 shrink-0">
+            <span className="text-lg">🧊</span>
           </div>
           <div>
             <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-              Lose {POINT_RULES.IDEA_REJECTED_INAPPROPRIATE} CP for Spam or Abuse
+              Streak Freezes Protect Your Rank
             </h4>
             <p className="text-xs text-slate-400 mt-0.5">
-              To keep the feature queue productive, spam or inappropriate proposals are rejected with a 5 CP penalty. Quality ideas always win.
+              Busy schedule? Purchase streak freezes with CP to automatically shield your streak when you miss a day of check-ins.
             </p>
           </div>
         </div>

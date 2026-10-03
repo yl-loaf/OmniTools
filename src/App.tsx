@@ -308,6 +308,47 @@ export default function App() {
     showToast(`Claimed daily reward! +1 Contribution Point (Streak: ${newStreak} Days) 🔥`, 'success');
   };
 
+  const handleBuyStreakFreeze = async () => {
+    if (!currentUser || isGuest) {
+      showToast('Sign in with Google to purchase streak freezes!', 'penalty');
+      return;
+    }
+    const cost = 5;
+    if (currentUser.contributionPoints < cost) {
+      showToast(`Not enough CP! Streak freeze costs ${cost} CP (You have ${currentUser.contributionPoints} CP).`, 'penalty');
+      return;
+    }
+
+    const updated: UserProfile = {
+      ...currentUser,
+      contributionPoints: currentUser.contributionPoints - cost,
+      streakFreezes: (currentUser.streakFreezes || 0) + 1,
+      updatedAt: new Date().toISOString(),
+    };
+
+    setCurrentUser(updated);
+
+    const { db, isConfigured } = initFirebase();
+    if (isConfigured && db) {
+      try {
+        await updateDoc(doc(db, 'users', currentUser.uid), {
+          contributionPoints: increment(-cost),
+          streakFreezes: increment(1),
+          updatedAt: new Date().toISOString(),
+        });
+      } catch (err) {
+        console.warn('Streak freeze purchase sync error:', err);
+      }
+    } else {
+      const updatedUsers = users.map((u) => (u.uid === currentUser.uid ? updated : u));
+      setUsers(updatedUsers);
+      saveLocalUsers(updatedUsers);
+      localStorage.setItem('omnitools_current_user', JSON.stringify(updated));
+    }
+
+    showToast('Successfully purchased a Streak Freeze! 🧊 Protected against missed days.', 'success');
+  };
+
   // Submit Request
   const handleSubmitRequest = async (
     newReqData: Omit<ToolRequest, 'id' | 'createdAt' | 'updatedAt' | 'votes' | 'voters' | 'pointsAwarded'>
@@ -523,6 +564,7 @@ export default function App() {
               currentUser={currentUser}
               onClaimDailyCheckIn={handleClaimDailyCheckIn}
               canClaimDaily={canClaimDaily()}
+              onBuyStreakFreeze={handleBuyStreakFreeze}
             />
             <Leaderboard users={users} currentUserId={currentUser?.uid} />
           </div>
