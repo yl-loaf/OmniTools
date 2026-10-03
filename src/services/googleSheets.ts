@@ -1,15 +1,16 @@
 import { ToolRequest } from '../types';
 
 const STORAGE_KEY_WEBHOOK_URL = 'community_tools_sheets_webhook';
-const OLD_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwIBA8aRbpKuhIaZCcGsKM7rYC5UHu_LTTEa8A9yI4LjMJ-k4RupDiDRnxqLOQigeBl/exec';
-const DEFAULT_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzHrplORmEb5zt8UGIHpj2aM0m5D0q3Ezhm4IuiGefSwVbDPU8pQ7mOTfviT18OL3LX/exec';
+const CURRENT_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbyElGXYvGyPwqrYMJJijtFVrd4ccExADmg7ghTBU0IZbp0K32V3YO9kR062ANKckhcQ/exec';
 
 export function getSavedSheetsWebhookUrl(): string {
   const saved = localStorage.getItem(STORAGE_KEY_WEBHOOK_URL);
-  if (saved !== null && saved !== OLD_WEBHOOK_URL) return saved;
-  // Default to user provided webhook url
-  localStorage.setItem(STORAGE_KEY_WEBHOOK_URL, DEFAULT_WEBHOOK_URL);
-  return DEFAULT_WEBHOOK_URL;
+  if (saved && saved.includes('AKfycbyElGXYvGyPwqrYMJJijtFVrd4ccExADmg7ghTBU0IZbp0K32V3YO9kR062ANKckhcQ')) {
+    return saved;
+  }
+  // Default to the latest user deployed webhook url
+  localStorage.setItem(STORAGE_KEY_WEBHOOK_URL, CURRENT_WEBHOOK_URL);
+  return CURRENT_WEBHOOK_URL;
 }
 
 export function saveSheetsWebhookUrl(url: string) {
@@ -80,7 +81,10 @@ export async function fetchRequestsFromGoogleSheet(): Promise<ToolRequest[]> {
   if (!webhookUrl) return [];
 
   try {
-    const res = await fetch(webhookUrl);
+    const separator = webhookUrl.includes('?') ? '&' : '?';
+    const res = await fetch(`${webhookUrl}${separator}_t=${Date.now()}`, {
+      cache: 'no-store',
+    });
     if (!res.ok) return [];
     const data = await res.json();
     if (data && Array.isArray(data.requests)) {
@@ -131,7 +135,26 @@ export function downloadRequestsCSV(requests: ToolRequest[]) {
 export const GOOGLE_APPS_SCRIPT_TEMPLATE = `// Google Apps Script Web App for OmniTools Request Sync & Extract
 function doPost(e) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  var data = JSON.parse(e.postData.contents);
+  var data;
+  
+  try {
+    if (e && e.postData && e.postData.contents) {
+      data = JSON.parse(e.postData.contents);
+    } else if (e && e.parameter) {
+      var keys = Object.keys(e.parameter);
+      if (keys.length > 0) {
+        data = JSON.parse(keys[0]);
+      }
+    }
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({status: 'error', message: err.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  if (!data) {
+    return ContentService.createTextOutput(JSON.stringify({status: 'error', message: 'No payload data found'}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
   
   if (data.action === 'create') {
     sheet.appendRow([

@@ -28,7 +28,7 @@ import {
   loginAsGuest,
   logoutUser
 } from './services/firebase';
-import { syncPromptToGoogleSheet } from './services/googleSheets';
+import { syncPromptToGoogleSheet, fetchRequestsFromGoogleSheet } from './services/googleSheets';
 import { onAuthStateChanged } from 'firebase/auth';
 import {
   collection,
@@ -171,10 +171,8 @@ export default function App() {
         unsubUsers();
       };
     } else {
-      // Local Storage Mode
-      const localReqs = getLocalRequests();
+      // Local Storage & Google Sheets Fallback Mode
       const localUsers = getLocalUsers();
-      setRequests(localReqs);
       setUsers(localUsers);
 
       const savedUserJson = localStorage.getItem('omnitools_current_user');
@@ -187,6 +185,29 @@ export default function App() {
           // ignore
         }
       }
+
+      // Pre-populate with local storage first so the UI loads instantly
+      const localReqs = getLocalRequests();
+      setRequests(localReqs);
+
+      // Automatically sync and pull submissions from Google Sheets in the background
+      fetchRequestsFromGoogleSheet()
+        .then((sheetReqs) => {
+          if (sheetReqs && sheetReqs.length > 0) {
+            const merged = [...sheetReqs];
+            // Merge any unique unsynced local requests
+            for (const lr of localReqs) {
+              if (!merged.some((mr) => mr.id === lr.id)) {
+                merged.push(lr);
+              }
+            }
+            setRequests(merged);
+            saveLocalRequests(merged);
+          }
+        })
+        .catch((err) => {
+          console.warn('Startup Google Sheet sync fallback error:', err);
+        });
     }
   }, []);
 
