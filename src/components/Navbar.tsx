@@ -191,6 +191,19 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-2">
+            {/* Home Tab */}
+            <button
+              onClick={() => setActiveTab('home')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition border ${
+                activeTab === 'home'
+                  ? 'bg-blue-600 text-white border-blue-500 shadow-xs shadow-blue-500/30'
+                  : 'text-slate-300 bg-slate-900 border-slate-800 hover:bg-slate-800 hover:text-white'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+              <span>Home</span>
+            </button>
+
             {/* All Tools Mega Dropdown */}
             <div className="relative" ref={dropdownRef}>
               <button
@@ -433,15 +446,25 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
           <div className="lg:hidden py-4 border-t border-slate-800 max-h-[80vh] overflow-y-auto space-y-3">
-            <div className="grid grid-cols-4 gap-1.5">
+            <div className="grid grid-cols-5 gap-1">
+              <button
+                onClick={() => {
+                  setActiveTab('home');
+                  setMobileMenuOpen(false);
+                }}
+                className="p-2 bg-blue-950/60 border border-blue-800/60 text-blue-200 rounded-xl text-[10px] font-bold text-center flex flex-col items-center gap-1"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+                <span>Home</span>
+              </button>
               <button
                 onClick={() => {
                   setActiveTab('favorites');
                   setMobileMenuOpen(false);
                 }}
-                className="p-2.5 bg-amber-950/60 border border-amber-800/60 text-amber-200 rounded-xl text-[11px] font-bold text-center flex flex-col items-center gap-1"
+                className="p-2 bg-amber-950/60 border border-amber-800/60 text-amber-200 rounded-xl text-[10px] font-bold text-center flex flex-col items-center gap-1"
               >
-                <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                 <span>Favorites</span>
               </button>
               <button
@@ -449,9 +472,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                   setActiveTab('request-hub');
                   setMobileMenuOpen(false);
                 }}
-                className="p-2.5 bg-purple-950/60 border border-purple-800/60 text-purple-200 rounded-xl text-[11px] font-bold text-center flex flex-col items-center gap-1"
+                className="p-2 bg-purple-950/60 border border-purple-800/60 text-purple-200 rounded-xl text-[10px] font-bold text-center flex flex-col items-center gap-1"
               >
-                <MessageSquarePlus className="w-4 h-4 text-purple-400" />
+                <MessageSquarePlus className="w-3.5 h-3.5 text-purple-400" />
                 <span>Requests</span>
               </button>
               <button
@@ -459,9 +482,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                   setActiveTab('leaderboard');
                   setMobileMenuOpen(false);
                 }}
-                className="p-2.5 bg-blue-950/60 border border-blue-800/60 text-blue-200 rounded-xl text-[11px] font-bold text-center flex flex-col items-center gap-1"
+                className="p-2 bg-blue-950/60 border border-blue-800/60 text-blue-200 rounded-xl text-[10px] font-bold text-center flex flex-col items-center gap-1"
               >
-                <Trophy className="w-4 h-4 text-blue-400" />
+                <Trophy className="w-3.5 h-3.5 text-blue-400" />
                 <span>Ranks</span>
               </button>
               <button
@@ -469,9 +492,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                   setActiveTab('admin');
                   setMobileMenuOpen(false);
                 }}
-                className="p-2.5 bg-rose-950/60 border border-rose-800/60 text-rose-200 rounded-xl text-[11px] font-bold text-center flex flex-col items-center gap-1"
+                className="p-2 bg-rose-950/60 border border-rose-800/60 text-rose-200 rounded-xl text-[10px] font-bold text-center flex flex-col items-center gap-1"
               >
-                <ShieldCheck className="w-4 h-4 text-rose-400" />
+                <ShieldCheck className="w-3.5 h-3.5 text-rose-400" />
                 <span>Admin</span>
               </button>
             </div>

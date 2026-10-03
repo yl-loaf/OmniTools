@@ -9,6 +9,7 @@ import { FirebaseModal } from './components/FirebaseModal';
 import { QuickSearchModal } from './components/QuickSearchModal';
 import { FavoritesHub } from './components/FavoritesHub';
 import { ActiveToolHeader } from './components/ActiveToolHeader';
+import { HomePage } from './components/HomePage';
 import { TOOLS_REGISTRY, DEFAULT_FAVORITE_IDS } from './data/toolsRegistry';
 
 // Existing Tools
@@ -116,7 +117,7 @@ export default function App() {
       if (toolParam) return toolParam;
       if (window.location.pathname === '/admin') return 'admin';
     }
-    return 'health-suite';
+    return 'home';
   };
 
   const getInitialFavorites = (): string[] => {
@@ -901,6 +902,20 @@ export default function App() {
             usageCount={usageCounts[activeTab] || 0}
             onToggleFavorite={handleToggleFavorite}
             onNavigateFavorites={() => setActiveTab('favorites')}
+          />
+        )}
+
+        {/* Homepage */}
+        {activeTab === 'home' && (
+          <HomePage
+            setActiveTab={setActiveTab}
+            requests={requests}
+            users={users}
+            usageCounts={usageCounts}
+            favoriteIds={favoriteIds}
+            onToggleFavorite={handleToggleFavorite}
+            currentUser={currentUser}
+            onOpenAuth={handleLoginGoogle}
           />
         )}
 
