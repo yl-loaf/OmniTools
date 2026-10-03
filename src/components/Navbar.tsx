@@ -40,7 +40,10 @@ import {
   Server,
   Keyboard,
   Waves,
-  Star
+  Star,
+  Heart,
+  CloudSun,
+  Award
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -87,6 +90,16 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   const toolCategories = [
+    {
+      name: 'Daily Life & 30+ Features',
+      items: [
+        { id: 'health-suite', label: 'Health, Fitness & Tips', icon: Heart, desc: 'Tip splitter, BMI, TDEE, water & sleep' },
+        { id: 'finance-suite', label: 'Finance, Recipe & Savings', icon: DollarSign, desc: 'Recipe scaler, fuel cost & compound growth' },
+        { id: 'productivity-suite', label: 'Productivity & Planning', icon: Clock, desc: 'Timezone planner, ETA & daily todos' },
+        { id: 'home-suite', label: 'Home, Travel & Packing', icon: CloudSun, desc: 'Parking timer, box volume & weather index' },
+        { id: 'quick-utils-suite', label: 'GPA, Sales & Quotes', icon: Award, desc: 'GPA, stacked discounts, egg timer & quotes' },
+      ],
+    },
     {
       name: 'Developer & Code Lab',
       items: [
@@ -160,7 +173,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </span>
                 </div>
                 <p className="text-[10px] text-slate-400 font-medium hidden sm:block">
-                  25+ Production Web Utilities
+                  55+ Daily Life & Dev Utilities
                 </p>
               </div>
             </button>
@@ -196,7 +209,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 ) : (
                   <>
                     <Wrench className="w-4 h-4 text-blue-400" />
-                    <span>All 25+ Tools</span>
+                    <span>All 55+ Tools</span>
                   </>
                 )}
                 <ChevronDown className={`w-3.5 h-3.5 transition-transform ${toolsDropdownOpen ? 'rotate-180' : ''}`} />
@@ -204,7 +217,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
               {/* Mega Dropdown Menu */}
               {toolsDropdownOpen && (
-                <div className="absolute left-0 mt-2 w-[850px] bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-5 z-50 grid grid-cols-3 gap-5 animate-in fade-in zoom-in-95 duration-150 max-h-[75vh] overflow-y-auto">
+                <div className="absolute left-0 mt-2 w-[850px] bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-5 z-50 grid grid-cols-2 gap-5 animate-in fade-in zoom-in-95 duration-150 max-h-[75vh] overflow-y-auto">
                   {toolCategories.map((cat, idx) => (
                     <div key={idx} className="space-y-2">
                       <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 border-b border-slate-800 pb-1">
@@ -338,7 +351,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={onOpenSearch}
-              title="Quick Search 25+ Tools (Ctrl+K)"
+              title="Quick Search 55+ Tools (Ctrl+K)"
               className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-medium border border-slate-700 transition shadow-xs"
             >
               <Search className="w-3.5 h-3.5 text-slate-400" />

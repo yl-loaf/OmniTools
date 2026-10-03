@@ -24,7 +24,10 @@ import {
   Code2,
   Server,
   DollarSign,
-  Waves
+  Waves,
+  Heart,
+  CloudSun,
+  Award
 } from 'lucide-react';
 
 export interface ToolMeta {
@@ -33,11 +36,18 @@ export interface ToolMeta {
   shortLabel: string;
   desc: string;
   icon: any;
-  category: 'Developer' | 'Design' | 'Data & Security' | 'Math & Finance' | 'Productivity';
+  category: 'Developer' | 'Design' | 'Data & Security' | 'Math & Finance' | 'Productivity' | 'Daily Life';
   badge?: string;
 }
 
 export const TOOLS_REGISTRY: ToolMeta[] = [
+  // Daily Life & 30+ Features Suites
+  { id: 'health-suite', name: 'Health, Fitness & Tip Calculator Suite', shortLabel: 'Health & Tips', desc: 'Tip splitter, BMI, TDEE calories, hydration & sleep', icon: Heart, category: 'Daily Life', badge: 'New' },
+  { id: 'finance-suite', name: 'Finance, Recipe & Savings Suite', shortLabel: 'Finance & Recipe', desc: 'Recipe scaler, road trip fuel, markup & compound growth', icon: DollarSign, category: 'Daily Life', badge: 'New' },
+  { id: 'productivity-suite', name: 'Productivity & Meeting Planner Suite', shortLabel: 'Productivity Suite', desc: 'Timezone world clocks, ETA travel, todo matrix & reading time', icon: Clock, category: 'Daily Life', badge: 'New' },
+  { id: 'home-suite', name: 'Home, Travel & Packing Suite', shortLabel: 'Home & Travel', desc: 'Parking meter timer, packing volume & weather heat index', icon: CloudSun, category: 'Daily Life', badge: 'New' },
+  { id: 'quick-utils-suite', name: 'GPA, Sale Discount & Quote Suite', shortLabel: 'Quick Utils Suite', desc: 'GPA calculator, stacked sale discounts, egg timer & quotes', icon: Award, category: 'Daily Life', badge: 'New' },
+
   // Developer
   { id: 'markdown', name: 'Markdown Studio & Live Previewer', shortLabel: 'Markdown Studio', desc: 'GFM live preview, table editor & HTML export', icon: FileText, category: 'Developer', badge: 'Popular' },
   { id: 'json-studio', name: 'JSON & TypeScript Studio', shortLabel: 'JSON Studio', desc: 'Format, validate, tree explorer & TS interfaces', icon: Braces, category: 'Developer', badge: 'Essential' },
@@ -79,4 +89,4 @@ export const TOOLS_REGISTRY: ToolMeta[] = [
   { id: 'sound-synth', name: 'Binaural Beats & White Noise', shortLabel: 'Noise & Binaural', desc: 'White/pink noise & theta focus waves', icon: Waves, category: 'Productivity', badge: 'Audio' },
 ];
 
-export const DEFAULT_FAVORITE_IDS = ['calculator', 'markdown', 'json-studio', 'color-studio', 'password-gen', 'finance-calc'];
+export const DEFAULT_FAVORITE_IDS = ['health-suite', 'finance-suite', 'productivity-suite', 'calculator', 'markdown', 'json-studio', 'color-studio', 'password-gen'];

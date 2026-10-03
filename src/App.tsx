@@ -45,6 +45,13 @@ import { KeycodeEventTester } from './components/tools/KeycodeEventTester';
 import { CurlBuilder } from './components/tools/CurlBuilder';
 import { SoundBinauralGenerator } from './components/tools/SoundBinauralGenerator';
 
+// Daily Life & 30+ Features Suites
+import { HealthFitnessSuite } from './components/tools/daily/HealthFitnessSuite';
+import { FinanceLifeSuite } from './components/tools/daily/FinanceLifeSuite';
+import { ProductivityTimeSuite } from './components/tools/daily/ProductivityTimeSuite';
+import { HomeTravelSuite } from './components/tools/daily/HomeTravelSuite';
+import { QuickUtilsSuite } from './components/tools/daily/QuickUtilsSuite';
+
 // Community & Admin
 import { ToolRequestHub } from './components/ToolRequestHub';
 import { AdminPortal } from './components/AdminPortal';
@@ -79,6 +86,11 @@ import {
 import { CheckCircle2, AlertTriangle, Sparkles, Database, Star } from 'lucide-react';
 
 const DEFAULT_BASELINE_USAGE: Record<string, number> = {
+  'health-suite': 112,
+  'finance-suite': 98,
+  'productivity-suite': 94,
+  'home-suite': 86,
+  'quick-utils-suite': 91,
   'json-studio': 84,
   'calculator': 79,
   'markdown': 65,
@@ -104,7 +116,7 @@ export default function App() {
       if (toolParam) return toolParam;
       if (window.location.pathname === '/admin') return 'admin';
     }
-    return 'calculator';
+    return 'health-suite';
   };
 
   const getInitialFavorites = (): string[] => {
@@ -901,6 +913,13 @@ export default function App() {
             onSelectTool={(id) => setActiveTab(id)}
           />
         )}
+
+        {/* Daily Life Suites (30+ Features) */}
+        {activeTab === 'health-suite' && <HealthFitnessSuite />}
+        {activeTab === 'finance-suite' && <FinanceLifeSuite />}
+        {activeTab === 'productivity-suite' && <ProductivityTimeSuite />}
+        {activeTab === 'home-suite' && <HomeTravelSuite />}
+        {activeTab === 'quick-utils-suite' && <QuickUtilsSuite />}
 
         {/* Core Tools */}
         {activeTab === 'calculator' && <ScientificCalculator />}
