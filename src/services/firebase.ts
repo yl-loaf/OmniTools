@@ -170,74 +170,18 @@ export function getLocalRequests(): ToolRequest[] {
   try {
     const data = localStorage.getItem(LOCAL_REQUESTS_KEY);
     if (!data) {
-      const initial: ToolRequest[] = [
-        {
-          id: 'req-1',
-          title: 'Pomodoro Focus Timer & Lap Stopwatch',
-          description: 'Customizable work/break intervals (25m/5m/15m) with pleasant synthesizer chimes and millisecond lap splits.',
-          category: 'productivity',
-          status: 'completed',
-          completedVersion: 'v1.0.2',
-          authorId: 'dev-alex',
-          authorName: 'Alex Chen',
-          isGuest: false,
-          pointsAwarded: 2,
-          votes: 24,
-          voters: [],
-          createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        {
-          id: 'req-2',
-          title: 'Text & String Transformation Studio',
-          description: 'Convert case (camelCase, snake_case, Title Case), Base64 encode/decode, and format/beautify JSON.',
-          category: 'text',
-          status: 'completed',
-          completedVersion: 'v1.0.2',
-          authorId: 'elena-ux',
-          authorName: 'Elena Rostova',
-          isGuest: false,
-          pointsAwarded: 2,
-          votes: 19,
-          voters: [],
-          createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        {
-          id: 'req-3',
-          title: 'Markdown Live Previewer & Cheat Sheet',
-          description: 'Split-screen Markdown editor with GitHub flavored syntax, tables, and one-click copy as formatted HTML.',
-          category: 'developer',
-          status: 'in_progress',
-          authorId: 'marcus-k',
-          authorName: 'Marcus Kane',
-          isGuest: false,
-          pointsAwarded: 0,
-          votes: 31,
-          voters: [],
-          createdAt: new Date(Date.now() - 86400000).toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        {
-          id: 'req-4',
-          title: 'Password Generator with Entropy Meter',
-          description: 'Generate high-security passwords with selectable symbols, ambiguous character exclusion, and bit strength analysis.',
-          category: 'utility',
-          status: 'pending',
-          authorId: 'guest-77',
-          authorName: 'Guest Contributor',
-          isGuest: true,
-          pointsAwarded: 0,
-          votes: 12,
-          voters: [],
-          createdAt: new Date(Date.now() - 3600000 * 4).toISOString(),
-          updatedAt: new Date().toISOString(),
-        }
-      ];
-      localStorage.setItem(LOCAL_REQUESTS_KEY, JSON.stringify(initial));
-      return initial;
+      return [];
     }
-    return JSON.parse(data);
+    const parsed: ToolRequest[] = JSON.parse(data);
+    // Purge fake mock requests
+    const realReqs = parsed.filter(
+      (r) => !['req-1', 'req-2', 'req-3', 'req-4'].includes(r.id) &&
+             !['dev-alex', 'elena-ux', 'marcus-k'].includes(r.authorId)
+    );
+    if (realReqs.length !== parsed.length) {
+      localStorage.setItem(LOCAL_REQUESTS_KEY, JSON.stringify(realReqs));
+    }
+    return realReqs;
   } catch {
     return [];
   }
@@ -251,51 +195,17 @@ export function getLocalUsers(): UserProfile[] {
   try {
     const data = localStorage.getItem(LOCAL_USERS_KEY);
     if (!data) {
-      const initialUsers: UserProfile[] = [
-        {
-          uid: 'dev-alex',
-          displayName: 'Alex Chen',
-          contributionPoints: 14,
-          generatedCount: 5,
-          rejectedCount: 0,
-          submittedCount: 6,
-          streakDays: 5,
-          lastActiveDate: new Date().toISOString().split('T')[0],
-          unlockedBadgeIds: ['first-spark', 'silver-builder'],
-          createdAt: new Date(Date.now() - 86400000 * 12).toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        {
-          uid: 'elena-ux',
-          displayName: 'Elena Rostova',
-          contributionPoints: 10,
-          generatedCount: 4,
-          rejectedCount: 0,
-          submittedCount: 4,
-          streakDays: 3,
-          lastActiveDate: new Date().toISOString().split('T')[0],
-          unlockedBadgeIds: ['first-spark', 'silver-builder'],
-          createdAt: new Date(Date.now() - 86400000 * 8).toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        {
-          uid: 'marcus-k',
-          displayName: 'Marcus Kane',
-          contributionPoints: 6,
-          generatedCount: 2,
-          rejectedCount: 0,
-          submittedCount: 3,
-          streakDays: 2,
-          lastActiveDate: new Date().toISOString().split('T')[0],
-          unlockedBadgeIds: ['first-spark'],
-          createdAt: new Date(Date.now() - 86400000 * 6).toISOString(),
-          updatedAt: new Date().toISOString(),
-        }
-      ];
-      localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(initialUsers));
-      return initialUsers;
+      return [];
     }
-    return JSON.parse(data);
+    const parsed: UserProfile[] = JSON.parse(data);
+    // Purge fake mock seed users
+    const realUsers = parsed.filter(
+      (u) => !['dev-alex', 'elena-ux', 'marcus-k'].includes(u.uid)
+    );
+    if (realUsers.length !== parsed.length) {
+      localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(realUsers));
+    }
+    return realUsers;
   } catch {
     return [];
   }

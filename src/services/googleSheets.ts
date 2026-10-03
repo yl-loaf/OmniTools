@@ -71,6 +71,29 @@ export async function syncPromptToGoogleSheet(
   }
 }
 
+/**
+ * Pulls/extracts requests directly from the Google Sheets Webhook
+ */
+export async function fetchRequestsFromGoogleSheet(): Promise<ToolRequest[]> {
+  const webhookUrl = getSavedSheetsWebhookUrl();
+  if (!webhookUrl) return [];
+
+  try {
+    const res = await fetch(webhookUrl);
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (data && Array.isArray(data.requests)) {
+      return data.requests as ToolRequest[];
+    } else if (Array.isArray(data)) {
+      return data as ToolRequest[];
+    }
+    return [];
+  } catch (err) {
+    console.warn('Unable to extract from Google Sheet webhook:', err);
+    return [];
+  }
+}
+
 export function formatRequestsForSheetsClipboard(requests: ToolRequest[]): string {
   const header = ['Request ID', 'Timestamp', 'Author Name', 'Author ID', 'Is Guest', 'Title', 'Prompt Description', 'Category', 'Status', 'Shipped Version', 'Points Awarded', 'Rejection Reason', 'Votes'].join('\t');
   const rows = requests.map((r) => [
@@ -104,7 +127,7 @@ export function downloadRequestsCSV(requests: ToolRequest[]) {
   document.body.removeChild(link);
 }
 
-export const GOOGLE_APPS_SCRIPT_TEMPLATE = `// Google Apps Script Web App for OmniTools Request Sync
+export const GOOGLE_APPS_SCRIPT_TEMPLATE = `// Google Apps Script Web App for OmniTools Request Sync & Extract
 function doPost(e) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   var data = JSON.parse(e.postData.contents);
@@ -140,5 +163,40 @@ function doPost(e) {
   }
   
   return ContentService.createTextOutput(JSON.stringify({status: 'success'})).setMimeType(ContentService.MimeType.JSON);
+}
+
+// Extracts and returns all requests from the Google Sheet as JSON
+function doGet(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = sheet.getDataRange().getValues();
+  if (data.length <= 1) {
+    return ContentService.createTextOutput(JSON.stringify({ requests: [] }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  var requests = [];
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    if (!row[0]) continue;
+    requests.push({
+      id: String(row[0]),
+      createdAt: row[1] ? String(row[1]) : new Date().toISOString(),
+      updatedAt: row[1] ? String(row[1]) : new Date().toISOString(),
+      authorName: String(row[2] || 'Contributor'),
+      authorId: String(row[3] || 'guest'),
+      isGuest: row[4] === 'Yes',
+      title: String(row[5] || 'Untitled Tool'),
+      description: String(row[6] || ''),
+      category: row[7] || 'utility',
+      status: row[8] || 'pending',
+      completedVersion: row[9] || '',
+      pointsAwarded: Number(row[10]) || 0,
+      rejectionReason: row[11] || '',
+      votes: Number(row[12]) || 0,
+      voters: []
+    });
+  }
+  return ContentService.createTextOutput(JSON.stringify({ requests: requests }))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 `;
