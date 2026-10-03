@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ToolRequest, UserProfile, RequestCategory, RequestStatus, CompletionStats } from '../types';
 import { APP_VERSION } from '../../version.js';
-import { getSavedSheetsWebhookUrl, formatRequestsForSheetsClipboard, downloadRequestsCSV, GOOGLE_APPS_SCRIPT_TEMPLATE } from '../services/googleSheets';
+import { getSavedSheetsWebhookUrl, formatRequestsForSheetsClipboard, downloadRequestsCSV, GOOGLE_APPS_SCRIPT_TEMPLATE, fetchRequestsFromGoogleSheet } from '../services/googleSheets';
 import {
   MessageSquarePlus,
   ThumbsUp,
@@ -19,7 +19,8 @@ import {
   Wrench,
   CheckSquare,
   ShieldCheck,
-  ShieldAlert
+  ShieldAlert,
+  RefreshCw
 } from 'lucide-react';
 
 interface ToolRequestHubProps {
@@ -32,6 +33,7 @@ interface ToolRequestHubProps {
   onOpenAuth: () => void;
   isAdminMode: boolean;
   onToggleAdminMode: () => void;
+  onImportRequests?: (reqs: ToolRequest[]) => void;
 }
 
 export const ToolRequestHub: React.FC<ToolRequestHubProps> = ({
@@ -44,12 +46,15 @@ export const ToolRequestHub: React.FC<ToolRequestHubProps> = ({
   onOpenAuth,
   isAdminMode,
   onToggleAdminMode,
+  onImportRequests,
 }) => {
   // Form state
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<RequestCategory>('productivity');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSyncingSheet, setIsSyncingSheet] = useState(false);
+  const [syncStatusMsg, setSyncStatusMsg] = useState<string | null>(null);
 
   // Queue Filters
   const [onlyMyIdeas, setOnlyMyIdeas] = useState(false);
@@ -117,6 +122,27 @@ export const ToolRequestHub: React.FC<ToolRequestHubProps> = ({
     setIsSubmitting(false);
   };
 
+  const handleSyncSheet = async () => {
+    setIsSyncingSheet(true);
+    setSyncStatusMsg(null);
+    try {
+      const items = await fetchRequestsFromGoogleSheet();
+      if (items.length > 0) {
+        if (onImportRequests) {
+          onImportRequests(items);
+        }
+        setSyncStatusMsg(`Successfully extracted ${items.length} requests from your Google Sheet!`);
+      } else {
+        setSyncStatusMsg('Connected to Google Sheet, but no rows were found.');
+      }
+    } catch {
+      setSyncStatusMsg('Failed to sync. Please ensure Google Apps Script is deployed as a Web App.');
+    } finally {
+      setIsSyncingSheet(false);
+      setTimeout(() => setSyncStatusMsg(null), 5000);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Top Banner & Header */}
@@ -130,10 +156,27 @@ export const ToolRequestHub: React.FC<ToolRequestHubProps> = ({
             Request custom browser utilities or widgets to be built directly onto this website.
             Public users can upvote and downvote ideas. You earn <strong className="text-emerald-400">+2 CP</strong> when your idea is built!
           </p>
+          {syncStatusMsg && (
+            <div className="mt-2 text-xs font-semibold text-emerald-400 flex items-center gap-1.5 animate-fadeIn">
+              <Check className="w-3.5 h-3.5" />
+              <span>{syncStatusMsg}</span>
+            </div>
+          )}
         </div>
 
-        {/* Admin Mode Toggle */}
-        <div className="flex items-center gap-2">
+        {/* Header Actions */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={handleSyncSheet}
+            disabled={isSyncingSheet}
+            title="Extract live requests from your connected Google Sheet"
+            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-700/60 text-emerald-300 rounded-xl text-xs font-semibold transition disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isSyncingSheet ? 'animate-spin' : ''}`} />
+            <span>{isSyncingSheet ? 'Extracting...' : 'Sync from Sheet'}</span>
+          </button>
+
+          {/* Admin Mode Toggle */}
           <button
             onClick={onToggleAdminMode}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition border ${

@@ -501,6 +501,22 @@ export default function App() {
     }
   };
 
+  // Import requests extracted from Google Sheets
+  const handleImportRequests = (importedRequests: ToolRequest[]) => {
+    const current = [...requests];
+    for (const item of importedRequests) {
+      const idx = current.findIndex((r) => r.id === item.id);
+      if (idx >= 0) {
+        current[idx] = item;
+      } else {
+        current.unshift(item);
+      }
+    }
+    setRequests(current);
+    saveLocalRequests(current);
+    showToast(`Loaded ${importedRequests.length} requests from Google Sheets!`, 'success');
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
       {/* Toast Notification Container */}
@@ -555,6 +571,7 @@ export default function App() {
             onOpenAuth={() => handleLoginGoogle()}
             isAdminMode={isAdminMode}
             onToggleAdminMode={() => setIsAdminMode(!isAdminMode)}
+            onImportRequests={handleImportRequests}
           />
         )}
         {activeTab === 'leaderboard' && (

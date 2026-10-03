@@ -1,11 +1,12 @@
 import { ToolRequest } from '../types';
 
 const STORAGE_KEY_WEBHOOK_URL = 'community_tools_sheets_webhook';
-const DEFAULT_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwIBA8aRbpKuhIaZCcGsKM7rYC5UHu_LTTEa8A9yI4LjMJ-k4RupDiDRnxqLOQigeBl/exec';
+const OLD_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwIBA8aRbpKuhIaZCcGsKM7rYC5UHu_LTTEa8A9yI4LjMJ-k4RupDiDRnxqLOQigeBl/exec';
+const DEFAULT_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzHrplORmEb5zt8UGIHpj2aM0m5D0q3Ezhm4IuiGefSwVbDPU8pQ7mOTfviT18OL3LX/exec';
 
 export function getSavedSheetsWebhookUrl(): string {
   const saved = localStorage.getItem(STORAGE_KEY_WEBHOOK_URL);
-  if (saved !== null) return saved;
+  if (saved !== null && saved !== OLD_WEBHOOK_URL) return saved;
   // Default to user provided webhook url
   localStorage.setItem(STORAGE_KEY_WEBHOOK_URL, DEFAULT_WEBHOOK_URL);
   return DEFAULT_WEBHOOK_URL;
