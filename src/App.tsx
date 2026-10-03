@@ -15,7 +15,7 @@ import { TextTools } from './components/tools/TextTools';
 import { UnitConverter } from './components/tools/UnitConverter';
 import { QrGenerator } from './components/tools/QrGenerator';
 
-// New 20 Tools
+// Extended Tool Suite
 import { MarkdownEditor } from './components/tools/MarkdownEditor';
 import { JsonFormatter } from './components/tools/JsonFormatter';
 import { ColorStudio } from './components/tools/ColorStudio';
@@ -42,10 +42,12 @@ import { KeycodeEventTester } from './components/tools/KeycodeEventTester';
 import { CurlBuilder } from './components/tools/CurlBuilder';
 import { SoundBinauralGenerator } from './components/tools/SoundBinauralGenerator';
 
+// Community & Admin
 import { ToolRequestHub } from './components/ToolRequestHub';
+import { AdminPortal } from './components/AdminPortal';
 import { Leaderboard } from './components/Leaderboard';
 import { TieredBadges } from './components/TieredBadges';
-import { ToolRequest, UserProfile, RequestStatus, FirebaseCustomConfig } from './types';
+import { ToolRequest, UserProfile, RequestStatus, FirebaseCustomConfig, ADMIN_EMAIL } from './types';
 import { APP_VERSION } from '../version.js';
 import {
   initFirebase,
@@ -66,6 +68,7 @@ import {
   onSnapshot,
   setDoc,
   updateDoc,
+  deleteDoc,
   increment,
   query,
   orderBy
@@ -78,6 +81,7 @@ export default function App() {
       const params = new URLSearchParams(window.location.search);
       const toolParam = params.get('tool');
       if (toolParam) return toolParam;
+      if (window.location.pathname === '/admin') return 'admin';
     }
     return 'calculator';
   };
@@ -128,6 +132,11 @@ export default function App() {
       const unsubAuth = onAuthStateChanged(auth, async (user) => {
         if (user) {
           setIsGuest(user.isAnonymous);
+          const isOwnerAdmin = user.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+          if (isOwnerAdmin) {
+            setIsAdminMode(true);
+          }
+
           const userProfile: UserProfile = {
             uid: user.uid,
             displayName: user.displayName || (user.isAnonymous ? 'Guest User' : 'Community Member'),
@@ -140,6 +149,7 @@ export default function App() {
             streakDays: 1,
             lastActiveDate: new Date().toISOString().split('T')[0],
             unlockedBadgeIds: [],
+            shippedTools: [],
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           };
@@ -153,6 +163,7 @@ export default function App() {
         } else {
           setCurrentUser(null);
           setIsGuest(false);
+          setIsAdminMode(false);
         }
       });
 
@@ -218,6 +229,9 @@ export default function App() {
           const parsed = JSON.parse(savedUserJson);
           setCurrentUser(parsed);
           setIsGuest(parsed.uid.startsWith('guest-'));
+          if (parsed.email && parsed.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+            setIsAdminMode(true);
+          }
         } catch {
           // ignore
         }
@@ -259,28 +273,33 @@ export default function App() {
       }
     } else {
       const mockUser: UserProfile = {
-        uid: `google-${Date.now()}`,
-        displayName: 'Demo Google User',
-        email: 'user@example.com',
-        contributionPoints: 2,
-        generatedCount: 1,
+        uid: `admin-${Date.now()}`,
+        displayName: 'SmashyBlocks Admin',
+        email: ADMIN_EMAIL,
+        contributionPoints: 10,
+        generatedCount: 5,
         rejectedCount: 0,
-        submittedCount: 1,
-        streakDays: 1,
+        submittedCount: 5,
+        streakDays: 7,
         lastActiveDate: new Date().toISOString().split('T')[0],
-        unlockedBadgeIds: ['first-spark'],
+        unlockedBadgeIds: ['first-spark', 'master-architect'],
+        shippedTools: [
+          { id: 'tool-md', name: 'Markdown Studio', version: 'v1.0.2', completedAt: new Date().toISOString() },
+          { id: 'tool-finance', name: 'Finance Calculator', version: 'v1.0.2', completedAt: new Date().toISOString() },
+        ],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
       setCurrentUser(mockUser);
       setIsGuest(false);
+      setIsAdminMode(true);
       localStorage.setItem('omnitools_current_user', JSON.stringify(mockUser));
 
       const updatedUsers = [mockUser, ...users.filter(u => u.uid !== mockUser.uid)];
       setUsers(updatedUsers);
       saveLocalUsers(updatedUsers);
 
-      showToast('Signed in in local mode! Connect Firebase in settings for live multi-user sync.', 'info');
+      showToast(`Signed in as Executive Admin (${ADMIN_EMAIL})!`, 'success');
     }
   };
 
@@ -305,11 +324,13 @@ export default function App() {
         streakDays: 0,
         lastActiveDate: new Date().toISOString().split('T')[0],
         unlockedBadgeIds: [],
+        shippedTools: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
       setCurrentUser(guestUser);
       setIsGuest(true);
+      setIsAdminMode(false);
       localStorage.setItem('omnitools_current_user', JSON.stringify(guestUser));
       showToast('Signed in as Guest (Anonymous Mode).', 'info');
     }
@@ -322,6 +343,7 @@ export default function App() {
     }
     setCurrentUser(null);
     setIsGuest(false);
+    setIsAdminMode(false);
     localStorage.removeItem('omnitools_current_user');
     showToast('Signed out successfully.', 'info');
   };
@@ -452,7 +474,7 @@ export default function App() {
     showToast('Your tool idea has been submitted to the public queue!', 'success');
   };
 
-  // Update Status (+2 CP for completed, -5 CP for inappropriate rejection)
+  // Update Status (+2 CP for completed/deployed, -5 CP for inappropriate rejection)
   const handleUpdateStatus = async (
     requestId: string,
     status: RequestStatus,
@@ -469,29 +491,47 @@ export default function App() {
       pointsDelta = -5; // -5 CP per prompt
     }
 
+    const nowIso = new Date().toISOString();
+    const shippedVer = version || req.completedVersion || `v${APP_VERSION}`;
+
     const updatedReq: ToolRequest = {
       ...req,
       status,
-      completedVersion: version || req.completedVersion,
+      completedVersion: shippedVer,
       pointsAwarded: pointsDelta,
       rejectionReason: rejectionReason || req.rejectionReason,
-      updatedAt: new Date().toISOString(),
+      deployedAt: status === 'completed' ? (req.deployedAt || nowIso) : req.deployedAt,
+      updatedAt: nowIso,
     };
 
     const updatedRequests = requests.map((r) => (r.id === requestId ? updatedReq : r));
     setRequests(updatedRequests);
     saveLocalRequests(updatedRequests);
 
+    // Update target author profile & record shipped tool
     if (!req.isGuest && pointsDelta !== 0) {
       const targetUser = users.find((u) => u.uid === req.authorId);
       if (targetUser) {
         const newCp = Math.max(0, targetUser.contributionPoints + pointsDelta);
+        const currentShipped = targetUser.shippedTools || [];
+        const newShipped = [...currentShipped];
+
+        if (status === 'completed' && !newShipped.some(t => t.id === req.id)) {
+          newShipped.push({
+            id: req.id,
+            name: req.title,
+            version: shippedVer,
+            completedAt: nowIso,
+          });
+        }
+
         const updatedTargetUser: UserProfile = {
           ...targetUser,
           contributionPoints: newCp,
           generatedCount: status === 'completed' ? targetUser.generatedCount + 1 : targetUser.generatedCount,
           rejectedCount: status === 'rejected' ? targetUser.rejectedCount + 1 : targetUser.rejectedCount,
-          updatedAt: new Date().toISOString(),
+          shippedTools: newShipped,
+          updatedAt: nowIso,
         };
 
         const updatedUsersList = users.map((u) => (u.uid === targetUser.uid ? updatedTargetUser : u));
@@ -510,10 +550,11 @@ export default function App() {
       try {
         await updateDoc(doc(db, 'tool_requests', requestId), {
           status,
-          completedVersion: updatedReq.completedVersion || '',
+          completedVersion: shippedVer,
           pointsAwarded: pointsDelta,
           rejectionReason: updatedReq.rejectionReason || '',
-          updatedAt: new Date().toISOString(),
+          deployedAt: updatedReq.deployedAt || nowIso,
+          updatedAt: nowIso,
         });
 
         if (!req.isGuest && pointsDelta !== 0) {
@@ -521,6 +562,7 @@ export default function App() {
             contributionPoints: increment(pointsDelta),
             generatedCount: status === 'completed' ? increment(1) : increment(0),
             rejectedCount: status === 'rejected' ? increment(1) : increment(0),
+            updatedAt: nowIso,
           });
         }
       } catch (err) {
@@ -531,12 +573,65 @@ export default function App() {
     syncPromptToGoogleSheet(updatedReq, 'update');
 
     if (status === 'completed') {
-      showToast(`Feature marked completed & shipped in ${version || 'app'}! +2 CP awarded to ${req.authorName}. 🎉`, 'success');
+      showToast(`Feature "${req.title}" deployed in ${shippedVer}! +2 CP awarded to ${req.authorName}. 🎉`, 'success');
     } else if (status === 'rejected') {
-      showToast(`Request rejected for inappropriate/spam purposes. -5 CP penalty applied to ${req.authorName}. ⚠️`, 'penalty');
+      showToast(`Request rejected. -5 CP penalty applied to ${req.authorName}. ⚠️`, 'penalty');
     } else {
       showToast(`Status updated to "${status.replace('_', ' ')}".`, 'info');
     }
+  };
+
+  // Delete single request document
+  const handleDeleteRequest = async (requestId: string) => {
+    const updated = requests.filter((r) => r.id !== requestId);
+    setRequests(updated);
+    saveLocalRequests(updated);
+
+    const { db, isConfigured } = initFirebase();
+    if (isConfigured && db) {
+      try {
+        await deleteDoc(doc(db, 'tool_requests', requestId));
+      } catch (e) {
+        console.warn('Firestore delete error:', e);
+      }
+    }
+    showToast('Request deleted from Firebase & queue.', 'info');
+  };
+
+  // Auto-Purge: Delete completed requests deployed for more than 7 days from Firebase
+  const handlePurgeOldRequests = async (): Promise<number> => {
+    const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
+
+    const purgeTargets = requests.filter((r) => {
+      if (r.status !== 'completed') return false;
+      const refTime = r.deployedAt ? new Date(r.deployedAt).getTime() : new Date(r.updatedAt).getTime();
+      return now - refTime > SEVEN_DAYS_MS;
+    });
+
+    if (purgeTargets.length === 0) {
+      showToast('No shipped requests older than 7 days found to purge.', 'info');
+      return 0;
+    }
+
+    const purgeIds = new Set(purgeTargets.map((r) => r.id));
+    const remaining = requests.filter((r) => !purgeIds.has(r.id));
+    setRequests(remaining);
+    saveLocalRequests(remaining);
+
+    const { db, isConfigured } = initFirebase();
+    if (isConfigured && db) {
+      for (const target of purgeTargets) {
+        try {
+          await deleteDoc(doc(db, 'tool_requests', target.id));
+        } catch (e) {
+          console.warn('Firestore purge error for doc id:', target.id, e);
+        }
+      }
+    }
+
+    showToast(`Purged ${purgeTargets.length} deployed requests older than 7 days from Firebase. User profiles retained all points!`, 'success');
+    return purgeTargets.length;
   };
 
   // Upvote/Downvote Request
@@ -635,7 +730,7 @@ export default function App() {
         {activeTab === 'unit-converter' && <UnitConverter />}
         {activeTab === 'qr-generator' && <QrGenerator />}
 
-        {/* 20 New Suite Tools */}
+        {/* Extended Suite Tools */}
         {activeTab === 'markdown' && <MarkdownEditor />}
         {activeTab === 'json-studio' && <JsonFormatter />}
         {activeTab === 'color-studio' && <ColorStudio />}
@@ -661,6 +756,19 @@ export default function App() {
         {activeTab === 'keycode-tester' && <KeycodeEventTester />}
         {activeTab === 'curl-builder' && <CurlBuilder />}
         {activeTab === 'sound-synth' && <SoundBinauralGenerator />}
+
+        {/* Executive Admin Portal (Exclusive for smashyblocks7@gmail.com) */}
+        {activeTab === 'admin' && (
+          <AdminPortal
+            currentUser={currentUser}
+            requests={requests}
+            users={users}
+            onUpdateStatus={handleUpdateStatus}
+            onPurgeOldRequests={handlePurgeOldRequests}
+            onDeleteRequest={handleDeleteRequest}
+            onLoginGoogle={handleLoginGoogle}
+          />
+        )}
 
         {/* Community & Gamification */}
         {activeTab === 'request-hub' && (

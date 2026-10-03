@@ -199,6 +199,24 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ users, currentUserId }
                                   </span>
                                 )}
                               </div>
+                              {user.shippedTools && user.shippedTools.length > 0 && (
+                                <div className="flex items-center gap-1 mt-1 flex-wrap">
+                                  {user.shippedTools.slice(0, 3).map((toolItem, tIdx) => (
+                                    <span
+                                      key={tIdx}
+                                      className="text-[9px] px-1.5 py-0.2 bg-emerald-950 text-emerald-300 border border-emerald-800/60 rounded font-mono"
+                                      title={`Feature shipped in ${toolItem.version}`}
+                                    >
+                                      ✓ {toolItem.name}
+                                    </span>
+                                  ))}
+                                  {user.shippedTools.length > 3 && (
+                                    <span className="text-[9px] text-slate-500 font-mono">
+                                      +{user.shippedTools.length - 3} more
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </td>

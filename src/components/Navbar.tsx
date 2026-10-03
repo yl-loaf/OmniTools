@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { UserProfile, FirebaseCustomConfig } from '../types';
+import { UserProfile, FirebaseCustomConfig, ADMIN_EMAIL } from '../types';
 import { APP_VERSION } from '../../version.js';
 import {
   Wrench,
@@ -269,6 +269,21 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Trophy className="w-4 h-4 text-amber-400" />
               <span>Leaderboard</span>
             </button>
+
+            {/* Admin Portal Tab (Exclusive for smashyblocks7@gmail.com) */}
+            <button
+              onClick={() => setActiveTab('admin')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition border ${
+                activeTab === 'admin'
+                  ? 'bg-rose-600 text-white border-rose-500 shadow-xs shadow-rose-500/30'
+                  : currentUser?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()
+                  ? 'text-rose-300 bg-rose-950/60 border-rose-700 hover:bg-rose-900 hover:text-white animate-pulse'
+                  : 'text-slate-400 bg-slate-900 border-slate-800 hover:bg-slate-800 hover:text-slate-200'
+              }`}
+            >
+              <ShieldCheck className="w-4 h-4 text-rose-400" />
+              <span>Admin Portal</span>
+            </button>
           </nav>
 
           {/* Quick Search Button + Points + Auth */}
@@ -357,26 +372,36 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
           <div className="lg:hidden py-4 border-t border-slate-800 max-h-[80vh] overflow-y-auto space-y-3">
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <button
                 onClick={() => {
                   setActiveTab('request-hub');
                   setMobileMenuOpen(false);
                 }}
-                className="p-2.5 bg-purple-950/60 border border-purple-800/60 text-purple-200 rounded-xl text-xs font-bold text-left flex items-center gap-2"
+                className="p-2.5 bg-purple-950/60 border border-purple-800/60 text-purple-200 rounded-xl text-xs font-bold text-left flex items-center gap-1.5"
               >
                 <MessageSquarePlus className="w-4 h-4 text-purple-400" />
-                <span>Request Hub</span>
+                <span>Requests</span>
               </button>
               <button
                 onClick={() => {
                   setActiveTab('leaderboard');
                   setMobileMenuOpen(false);
                 }}
-                className="p-2.5 bg-amber-950/60 border border-amber-800/60 text-amber-200 rounded-xl text-xs font-bold text-left flex items-center gap-2"
+                className="p-2.5 bg-amber-950/60 border border-amber-800/60 text-amber-200 rounded-xl text-xs font-bold text-left flex items-center gap-1.5"
               >
                 <Trophy className="w-4 h-4 text-amber-400" />
-                <span>Leaderboard</span>
+                <span>Ranks</span>
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab('admin');
+                  setMobileMenuOpen(false);
+                }}
+                className="p-2.5 bg-rose-950/60 border border-rose-800/60 text-rose-200 rounded-xl text-xs font-bold text-left flex items-center gap-1.5"
+              >
+                <ShieldCheck className="w-4 h-4 text-rose-400" />
+                <span>Admin</span>
               </button>
             </div>
 

@@ -1,6 +1,8 @@
 export type RequestCategory = 'math' | 'productivity' | 'text' | 'conversion' | 'developer' | 'utility' | 'other';
 export type RequestStatus = 'pending' | 'in_progress' | 'completed' | 'rejected';
 
+export const ADMIN_EMAIL = 'smashyblocks7@gmail.com';
+
 export interface ToolRequest {
   id: string;
   title: string;
@@ -18,6 +20,14 @@ export interface ToolRequest {
   voters: string[];
   createdAt: string;
   updatedAt: string;
+  deployedAt?: string; // Timestamp when marked as completed/deployed
+}
+
+export interface ShippedToolRecord {
+  id: string;
+  name: string;
+  version: string;
+  completedAt: string;
 }
 
 export interface Badge {
@@ -42,6 +52,7 @@ export interface UserProfile {
   streakFreezes?: number;
   lastActiveDate: string;
   unlockedBadgeIds: string[];
+  shippedTools?: ShippedToolRecord[];
   createdAt: string;
   updatedAt: string;
 }

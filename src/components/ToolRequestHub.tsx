@@ -437,10 +437,30 @@ export const ToolRequestHub: React.FC<ToolRequestHubProps> = ({
 
                     {/* Title & Description */}
                     <div>
-                      <h4 className="text-base font-bold text-white leading-snug">{req.title}</h4>
-                      <p className="text-xs text-slate-300 mt-1 leading-relaxed whitespace-pre-line">
-                        {req.description}
-                      </p>
+                      <div className="flex items-center justify-between gap-2">
+                        <h4 className="text-base font-bold text-white leading-snug flex items-center gap-2">
+                          <span>{req.title}</span>
+                          {req.status === 'completed' && (
+                            <span className="text-[10px] font-semibold px-2 py-0.5 bg-emerald-950 text-emerald-300 border border-emerald-800 rounded-full flex items-center gap-1 font-mono">
+                              <Check className="w-3 h-3" /> Live in Website
+                            </span>
+                          )}
+                        </h4>
+                      </div>
+                      
+                      {/* For completed tools, only show the feature name for public users (hide raw details) */}
+                      {req.status === 'completed' ? (
+                        isAdminMode || isAuthor ? (
+                          <p className="text-xs text-slate-400 mt-1 leading-relaxed whitespace-pre-line bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/60 font-mono">
+                            <span className="text-slate-500 text-[10px] block uppercase font-bold mb-0.5">Original Proposal Details:</span>
+                            {req.description}
+                          </p>
+                        ) : null
+                      ) : (
+                        <p className="text-xs text-slate-300 mt-1 leading-relaxed whitespace-pre-line">
+                          {req.description}
+                        </p>
+                      )}
                     </div>
 
                     {/* Rejection Notice */}
