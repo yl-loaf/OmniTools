@@ -61,6 +61,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<string>(getInitialTab);
   const [firebaseModalOpen, setFirebaseModalOpen] = useState(false);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
+  const [isAdminMode, setIsAdminMode] = useState(false);
   const [firebaseConfig, setFirebaseConfig] = useState<FirebaseCustomConfig | null>(getSavedFirebaseConfig());
 
   // User State
@@ -472,15 +473,12 @@ export default function App() {
     }
   };
 
-  // Upvote Request
-  const handleVote = async (requestId: string) => {
-    const voterId = currentUser?.uid || 'guest';
+  // Upvote/Downvote Request
+  const handleVote = async (requestId: string, delta: number = 1) => {
     const updated = requests.map((r) => {
       if (r.id === requestId) {
-        const hasVoted = r.voters?.includes(voterId);
-        const newVoters = hasVoted ? r.voters.filter((v) => v !== voterId) : [...(r.voters || []), voterId];
-        const newVotes = hasVoted ? Math.max(0, r.votes - 1) : r.votes + 1;
-        return { ...r, votes: newVotes, voters: newVoters };
+        const newVotes = Math.max(0, (r.votes || 0) + delta);
+        return { ...r, votes: newVotes };
       }
       return r;
     });
@@ -495,7 +493,6 @@ export default function App() {
         if (reqDoc) {
           await updateDoc(doc(db, 'tool_requests', requestId), {
             votes: reqDoc.votes,
-            voters: reqDoc.voters,
           });
         }
       } catch (e) {
@@ -556,6 +553,8 @@ export default function App() {
             onUpdateStatus={handleUpdateStatus}
             onVote={handleVote}
             onOpenAuth={() => handleLoginGoogle()}
+            isAdminMode={isAdminMode}
+            onToggleAdminMode={() => setIsAdminMode(!isAdminMode)}
           />
         )}
         {activeTab === 'leaderboard' && (
