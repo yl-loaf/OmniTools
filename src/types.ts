@@ -30,6 +30,12 @@ export interface ShippedToolRecord {
   completedAt: string;
 }
 
+export interface ToolUsageStat {
+  id: string;
+  usageCount: number;
+  lastUsedAt: string;
+}
+
 export interface Badge {
   id: string;
   name: string;

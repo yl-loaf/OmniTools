@@ -1,10 +1,11 @@
 import React from 'react';
 import { TOOLS_REGISTRY } from '../data/toolsRegistry';
-import { Star, ArrowLeft, ExternalLink, Sparkles } from 'lucide-react';
+import { Star, Activity, Sparkles, Flame } from 'lucide-react';
 
 interface ActiveToolHeaderProps {
   activeTab: string;
   favoriteIds: string[];
+  usageCount?: number;
   onToggleFavorite: (toolId: string) => void;
   onNavigateFavorites: () => void;
 }
@@ -12,6 +13,7 @@ interface ActiveToolHeaderProps {
 export const ActiveToolHeader: React.FC<ActiveToolHeaderProps> = ({
   activeTab,
   favoriteIds,
+  usageCount = 0,
   onToggleFavorite,
   onNavigateFavorites,
 }) => {
@@ -27,11 +29,17 @@ export const ActiveToolHeader: React.FC<ActiveToolHeaderProps> = ({
         <div className="p-1.5 rounded-lg bg-blue-950 text-blue-400 border border-blue-800/50">
           <Icon className="w-4 h-4" />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs font-bold text-white">{tool.name}</span>
           <span className="text-[10px] font-medium px-2 py-0.2 rounded-full bg-slate-800 text-slate-400 border border-slate-700 capitalize">
             {tool.category}
           </span>
+          {usageCount > 0 && (
+            <span className="text-[10px] font-mono font-bold px-2 py-0.2 rounded-full bg-orange-950/60 text-orange-300 border border-orange-800/60 flex items-center gap-1">
+              <Flame className="w-3 h-3 text-orange-400 fill-orange-400" />
+              <span>{usageCount} {usageCount === 1 ? 'launch' : 'launches'}</span>
+            </span>
+          )}
         </div>
       </div>
 

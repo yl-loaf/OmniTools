@@ -50,7 +50,7 @@ import { ToolRequestHub } from './components/ToolRequestHub';
 import { AdminPortal } from './components/AdminPortal';
 import { Leaderboard } from './components/Leaderboard';
 import { TieredBadges } from './components/TieredBadges';
-import { ToolRequest, UserProfile, RequestStatus, FirebaseCustomConfig, ADMIN_EMAIL } from './types';
+import { ToolRequest, UserProfile, RequestStatus, FirebaseCustomConfig, ADMIN_EMAIL, ToolUsageStat } from './types';
 import { APP_VERSION } from '../version.js';
 import {
   initFirebase,
@@ -78,6 +78,24 @@ import {
 } from 'firebase/firestore';
 import { CheckCircle2, AlertTriangle, Sparkles, Database, Star } from 'lucide-react';
 
+const DEFAULT_BASELINE_USAGE: Record<string, number> = {
+  'json-studio': 84,
+  'calculator': 79,
+  'markdown': 65,
+  'password-gen': 58,
+  'color-studio': 49,
+  'regex-tester': 44,
+  'diff-checker': 38,
+  'crypto-encoder': 35,
+  'finance-calc': 32,
+  'sql-formatter': 29,
+  'timer': 28,
+  'qr-generator': 25,
+  'time-converter': 22,
+  'unit-converter': 20,
+  'sound-synth': 18,
+};
+
 export default function App() {
   const getInitialTab = () => {
     if (typeof window !== 'undefined') {
@@ -100,8 +118,20 @@ export default function App() {
     return DEFAULT_FAVORITE_IDS;
   };
 
+  const getInitialUsageCounts = (): Record<string, number> => {
+    try {
+      const saved = localStorage.getItem('omnitools_tool_usage_counts');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return { ...DEFAULT_BASELINE_USAGE, ...parsed };
+      }
+    } catch {}
+    return DEFAULT_BASELINE_USAGE;
+  };
+
   const [activeTab, setActiveTab] = useState<string>(getInitialTab);
   const [favoriteIds, setFavoriteIds] = useState<string[]>(getInitialFavorites);
+  const [usageCounts, setUsageCounts] = useState<Record<string, number>>(getInitialUsageCounts);
   const [firebaseModalOpen, setFirebaseModalOpen] = useState(false);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [isAdminMode, setIsAdminMode] = useState(false);
@@ -122,6 +152,43 @@ export default function App() {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
   };
+
+  // Track Tool Usage (Firestore increment & Local state)
+  const trackToolUsage = async (toolId: string) => {
+    const isTool = TOOLS_REGISTRY.some((t) => t.id === toolId);
+    if (!isTool) return;
+
+    setUsageCounts((prev) => {
+      const updated = {
+        ...prev,
+        [toolId]: (prev[toolId] || 0) + 1,
+      };
+      localStorage.setItem('omnitools_tool_usage_counts', JSON.stringify(updated));
+      return updated;
+    });
+
+    const { db, isConfigured } = initFirebase();
+    if (isConfigured && db) {
+      try {
+        await setDoc(
+          doc(db, 'tool_stats', toolId),
+          {
+            id: toolId,
+            usageCount: increment(1),
+            lastUsedAt: new Date().toISOString(),
+          },
+          { merge: true }
+        );
+      } catch (e) {
+        console.warn('Error recording tool usage in Firestore:', e);
+      }
+    }
+  };
+
+  // Trigger usage tracking whenever active tab changes to a tool
+  useEffect(() => {
+    trackToolUsage(activeTab);
+  }, [activeTab]);
 
   // Toggle favorite
   const handleToggleFavorite = async (toolId: string) => {
@@ -277,10 +344,30 @@ export default function App() {
         }
       );
 
+      // 4. Real-time Tool Usage Stats Listener
+      const unsubStats = onSnapshot(
+        collection(db, 'tool_stats'),
+        (snapshot) => {
+          const statsMap: Record<string, number> = { ...DEFAULT_BASELINE_USAGE };
+          snapshot.forEach((d) => {
+            const data = d.data();
+            if (data && data.id && typeof data.usageCount === 'number') {
+              statsMap[data.id] = data.usageCount;
+            }
+          });
+          setUsageCounts(statsMap);
+          localStorage.setItem('omnitools_tool_usage_counts', JSON.stringify(statsMap));
+        },
+        (error) => {
+          console.warn('Firestore tool_stats listener fallback:', error);
+        }
+      );
+
       return () => {
         unsubAuth();
         unsubRequests();
         unsubUsers();
+        unsubStats();
       };
     } else {
       // Local Storage & Google Sheets Fallback Mode
@@ -794,20 +881,22 @@ export default function App() {
 
       {/* Active Tab View */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Active Tool Header with 1-Click Star Button */}
+        {/* Active Tool Header with 1-Click Star Button & Usage Count */}
         {isToolView && (
           <ActiveToolHeader
             activeTab={activeTab}
             favoriteIds={favoriteIds}
+            usageCount={usageCounts[activeTab] || 0}
             onToggleFavorite={handleToggleFavorite}
             onNavigateFavorites={() => setActiveTab('favorites')}
           />
         )}
 
-        {/* My Favorites Hub */}
+        {/* My Favorites Hub & Most Used Utilities Dashboard */}
         {activeTab === 'favorites' && (
           <FavoritesHub
             favoriteIds={favoriteIds}
+            usageCounts={usageCounts}
             onToggleFavorite={handleToggleFavorite}
             onSelectTool={(id) => setActiveTab(id)}
           />
