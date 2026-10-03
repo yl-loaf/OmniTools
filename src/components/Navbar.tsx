@@ -137,6 +137,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         { id: 'http-lookup', label: 'HTTP Status Lookup', icon: Server, desc: 'REST API 2xx, 3xx, 4xx, 5xx guide' },
         { id: 'finance-calc', label: 'Finance & Loan Studio', icon: DollarSign, desc: 'Mortgage amortization & compound interest' },
         { id: 'calculator', label: 'Scientific Calculator', icon: Calculator, desc: 'Trig, exponents, parentheses & memory' },
+        { id: 'precision-timer', label: 'High-Precision % Timer', icon: Timer, desc: 'Dynamic decimal progress bar ticking 10x/sec' },
         { id: 'countdown', label: 'Event Countdown Timer', icon: Clock, desc: 'Real-time countdown in mm:dd:hh:mm:ss format' },
         { id: 'time-converter', label: 'Time & World Clocks', icon: Clock, desc: 'Unix timestamps & world timezones' },
         { id: 'timer', label: 'Pomodoro & Timer', icon: Timer, desc: 'Focus intervals & lap stopwatch' },
