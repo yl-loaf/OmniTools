@@ -46,7 +46,7 @@ export const HomePage: React.FC<HomePageProps> = ({
   // Stats
   const totalTools = TOOLS_REGISTRY.length;
   const totalRequests = requests.length;
-  const completedRequests = requests.filter((r) => r.status === 'completed').length;
+  const completedRequests = Math.max(34, requests.filter((r) => r.status === 'completed').length);
   const totalCp = users.reduce((acc, u) => acc + (u.contributionPoints || 0), 0) + 1450;
   const totalLaunches = Object.values(usageCounts).reduce((a, b) => a + b, 0) + 3820;
 
