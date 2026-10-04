@@ -1128,6 +1128,7 @@ export default function App() {
             onToggleFavorite={handleToggleFavorite}
             currentUser={currentUser}
             onOpenAuth={handleLoginGoogle}
+            onOpenSearch={() => setSearchModalOpen(true)}
           />
         )}
 

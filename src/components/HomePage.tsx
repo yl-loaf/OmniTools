@@ -19,7 +19,8 @@ import {
   Award,
   ShieldCheck,
   TrendingUp,
-  Users
+  Users,
+  Search
 } from 'lucide-react';
 
 interface HomePageProps {
@@ -31,6 +32,7 @@ interface HomePageProps {
   onToggleFavorite: (toolId: string) => void;
   currentUser: UserProfile | null;
   onOpenAuth: () => void;
+  onOpenSearch: () => void;
 }
 
 export const HomePage: React.FC<HomePageProps> = ({
@@ -42,6 +44,7 @@ export const HomePage: React.FC<HomePageProps> = ({
   onToggleFavorite,
   currentUser,
   onOpenAuth,
+  onOpenSearch,
 }) => {
   // Stats
   const totalTools = TOOLS_REGISTRY.length;
@@ -81,6 +84,22 @@ export const HomePage: React.FC<HomePageProps> = ({
           <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl">
             OmniTools combines lightning-fast developer utilities, design studios, health calculators, and daily life tools into one lightning-fast workspace. Propose features, earn Contribution Points, and watch your ideas come to life.
           </p>
+
+          {/* Prominent Quick Search Bar */}
+          <div className="max-w-xl pt-2">
+            <button
+              onClick={onOpenSearch}
+              className="w-full bg-slate-900/90 hover:bg-slate-900 border border-slate-700 hover:border-blue-500 rounded-2xl px-5 py-4 flex items-center gap-3.5 cursor-pointer transition shadow-2xl group text-left"
+            >
+              <Search className="w-5 h-5 text-blue-400 group-hover:scale-110 transition shrink-0" />
+              <span className="text-sm text-slate-300 font-semibold flex-1">
+                Search 55+ tools, utilities, or commands...
+              </span>
+              <kbd className="px-2.5 py-1 bg-slate-800 text-slate-300 rounded-lg text-xs font-mono border border-slate-700 shadow-xs">
+                ⌘K
+              </kbd>
+            </button>
+          </div>
 
           <div className="flex flex-wrap items-center gap-3 pt-2">
             <button
