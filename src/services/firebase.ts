@@ -187,3 +187,21 @@ export function getLocalIssues(): import('../types').ToolIssue[] {
 export function saveLocalIssues(issues: import('../types').ToolIssue[]) {
   localStorage.setItem(LOCAL_ISSUES_KEY, JSON.stringify(issues));
 }
+
+/**
+ * Strips all `undefined` values from an object recursively.
+ * Cloud Firestore throws a fatal error if any field is `undefined`.
+ */
+export function cleanFirestoreData<T extends Record<string, any>>(obj: T): Partial<T> {
+  const result: any = {};
+  for (const [key, val] of Object.entries(obj)) {
+    if (val !== undefined) {
+      if (val && typeof val === 'object' && !Array.isArray(val) && !(val instanceof Date)) {
+        result[key] = cleanFirestoreData(val);
+      } else {
+        result[key] = val;
+      }
+    }
+  }
+  return result;
+}

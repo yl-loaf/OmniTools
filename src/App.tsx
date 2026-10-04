@@ -77,13 +77,15 @@ import {
   saveLocalIssues,
   loginWithGoogle,
   loginAsGuest,
-  logoutUser
+  logoutUser,
+  cleanFirestoreData
 } from './services/firebase';
 import { syncPromptToGoogleSheet, fetchRequestsFromGoogleSheet } from './services/googleSheets';
 import { onAuthStateChanged } from 'firebase/auth';
 import {
   collection,
   doc,
+  getDoc,
   onSnapshot,
   setDoc,
   updateDoc,
@@ -267,7 +269,7 @@ export default function App() {
     const { db, isConfigured } = initFirebase();
     if (isConfigured && db) {
       try {
-        await setDoc(doc(db, 'tool_issues', newIssue.id), newIssue);
+        await setDoc(doc(db, 'tool_issues', newIssue.id), cleanFirestoreData(newIssue));
       } catch (e) {
         console.warn('Firestore create issue error:', e);
       }
@@ -326,10 +328,10 @@ export default function App() {
           updatedAt: nowIso,
         });
 
-        await updateDoc(doc(db, 'users', target.reporterId), {
+        await setDoc(doc(db, 'users', target.reporterId), {
           contributionPoints: increment(3),
           updatedAt: nowIso,
-        });
+        }, { merge: true });
       } catch (e) {
         console.warn('Firestore resolve issue error:', e);
       }
@@ -369,10 +371,10 @@ export default function App() {
       const { db, isConfigured } = initFirebase();
       if (isConfigured && db) {
         try {
-          await updateDoc(doc(db, 'users', currentUser.uid), {
+          await setDoc(doc(db, 'users', currentUser.uid), {
             favoriteToolIds: newFavorites,
             updatedAt: new Date().toISOString(),
-          });
+          }, { merge: true });
         } catch (e) {
           console.warn('Sync favorites error:', e);
         }
@@ -398,10 +400,10 @@ export default function App() {
     const { db, isConfigured } = initFirebase();
     if (isConfigured && db) {
       try {
-        await updateDoc(doc(db, 'users', currentUser.uid), {
+        await setDoc(doc(db, 'users', currentUser.uid), {
           friendIds: newFriendIds,
           updatedAt: new Date().toISOString(),
-        });
+        }, { merge: true });
       } catch (e) {
         console.warn('Firestore update friends error:', e);
       }
@@ -458,33 +460,61 @@ export default function App() {
             setIsAdminMode(true);
           }
 
+          // Fetch existing Firestore profile to preserve user CP & streaks
+          let firestoreUser: UserProfile | null = null;
+          try {
+            const userSnap = await getDoc(doc(db, 'users', user.uid));
+            if (userSnap.exists()) {
+              firestoreUser = userSnap.data() as UserProfile;
+            }
+          } catch (e) {
+            console.warn('Error reading existing user from Firestore:', e);
+          }
+
           const existingLocal = getInitialUser();
-          const existingPoints = existingLocal && existingLocal.uid === user.uid ? existingLocal.contributionPoints : 0;
-          const existingStreak = existingLocal && existingLocal.uid === user.uid ? existingLocal.streakDays : 1;
-          const existingShipped = existingLocal && existingLocal.uid === user.uid ? (existingLocal.shippedTools || []) : [];
-          const existingFriends = existingLocal && existingLocal.uid === user.uid ? (existingLocal.friendIds || []) : [];
+          const existingPoints = Math.max(
+            firestoreUser?.contributionPoints ?? 0,
+            existingLocal && existingLocal.uid === user.uid ? existingLocal.contributionPoints : 0
+          );
+          const existingStreak = Math.max(
+            firestoreUser?.streakDays ?? 1,
+            existingLocal && existingLocal.uid === user.uid ? existingLocal.streakDays : 1
+          );
+          const existingShipped = firestoreUser?.shippedTools?.length
+            ? firestoreUser.shippedTools
+            : existingLocal && existingLocal.uid === user.uid
+            ? existingLocal.shippedTools || []
+            : [];
+          const existingFriends = firestoreUser?.friendIds?.length
+            ? firestoreUser.friendIds
+            : existingLocal && existingLocal.uid === user.uid
+            ? existingLocal.friendIds || []
+            : [];
+          const existingBadges = firestoreUser?.unlockedBadgeIds?.length
+            ? firestoreUser.unlockedBadgeIds
+            : existingLocal?.unlockedBadgeIds || [];
 
           const userProfile: UserProfile = {
             uid: user.uid,
-            displayName: user.displayName || (user.isAnonymous ? 'Guest User' : 'Community Member'),
-            photoURL: user.photoURL || undefined,
-            email: user.email || undefined,
+            displayName: user.displayName || firestoreUser?.displayName || (user.isAnonymous ? 'Guest User' : 'Community Member'),
+            photoURL: user.photoURL || firestoreUser?.photoURL || undefined,
+            email: user.email || firestoreUser?.email || undefined,
             contributionPoints: existingPoints,
-            generatedCount: existingLocal?.generatedCount || 0,
-            rejectedCount: existingLocal?.rejectedCount || 0,
-            submittedCount: existingLocal?.submittedCount || 0,
+            generatedCount: Math.max(firestoreUser?.generatedCount ?? 0, existingLocal?.generatedCount ?? 0),
+            rejectedCount: Math.max(firestoreUser?.rejectedCount ?? 0, existingLocal?.rejectedCount ?? 0),
+            submittedCount: Math.max(firestoreUser?.submittedCount ?? 0, existingLocal?.submittedCount ?? 0),
             streakDays: existingStreak,
-            lastActiveDate: new Date().toISOString().split('T')[0],
-            unlockedBadgeIds: existingLocal?.unlockedBadgeIds || [],
+            lastActiveDate: firestoreUser?.lastActiveDate || new Date().toISOString().split('T')[0],
+            unlockedBadgeIds: existingBadges,
             shippedTools: existingShipped,
             favoriteToolIds: favoriteIds,
             friendIds: existingFriends,
-            createdAt: existingLocal?.createdAt || new Date().toISOString(),
+            createdAt: firestoreUser?.createdAt || existingLocal?.createdAt || new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           };
 
           try {
-            await setDoc(doc(db, 'users', user.uid), userProfile, { merge: true });
+            await setDoc(doc(db, 'users', user.uid), cleanFirestoreData(userProfile), { merge: true });
           } catch (e) {
             console.warn('Error syncing user profile:', e);
           }
@@ -756,12 +786,12 @@ export default function App() {
     const { db, isConfigured } = initFirebase();
     if (isConfigured && db) {
       try {
-        await updateDoc(doc(db, 'users', currentUser.uid), {
+        await setDoc(doc(db, 'users', currentUser.uid), {
           contributionPoints: increment(1),
           streakDays: newStreak,
           lastActiveDate: today,
           updatedAt: new Date().toISOString(),
-        });
+        }, { merge: true });
       } catch (err) {
         console.warn('Firestore daily check-in sync error:', err);
       }
@@ -796,11 +826,11 @@ export default function App() {
     const { db, isConfigured } = initFirebase();
     if (isConfigured && db) {
       try {
-        await updateDoc(doc(db, 'users', currentUser.uid), {
+        await setDoc(doc(db, 'users', currentUser.uid), {
           contributionPoints: increment(-cost),
           streakFreezes: increment(1),
           updatedAt: new Date().toISOString(),
-        });
+        }, { merge: true });
       } catch (err) {
         console.warn('Streak freeze purchase sync error:', err);
       }
@@ -830,7 +860,7 @@ export default function App() {
     const { db, isConfigured } = initFirebase();
     if (isConfigured && db) {
       try {
-        await setDoc(doc(db, 'tool_requests', newReq.id), newReq);
+        await setDoc(doc(db, 'tool_requests', newReq.id), cleanFirestoreData(newReq));
       } catch (e) {
         console.warn('Firestore create request error, saving locally:', e);
       }
@@ -933,12 +963,12 @@ export default function App() {
         });
 
         if (!req.isGuest && pointsDelta !== 0) {
-          await updateDoc(doc(db, 'users', req.authorId), {
+          await setDoc(doc(db, 'users', req.authorId), {
             contributionPoints: increment(pointsDelta),
             generatedCount: status === 'completed' ? increment(1) : increment(0),
             rejectedCount: status === 'rejected' ? increment(1) : increment(0),
             updatedAt: nowIso,
-          });
+          }, { merge: true });
         }
       } catch (err) {
         console.warn('Firestore update status error:', err);

@@ -44,6 +44,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
   });
 
   useEffect(() => {
+    if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
@@ -51,7 +52,23 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+  }, [isOpen, onClose]);
+
+  // Reset query when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setQuery('');
+    }
+  }, [isOpen]);
+
+  const autocompleteSuggestions = useMemo(() => {
+    if (!isOpen || !query.trim() || query.length < 1) return [];
+    return TOOLS_REGISTRY.filter(
+      (t) =>
+        t.name.toLowerCase().includes(query.toLowerCase()) ||
+        t.shortLabel.toLowerCase().includes(query.toLowerCase())
+    ).slice(0, 4);
+  }, [isOpen, query]);
 
   if (!isOpen) return null;
 
@@ -95,15 +112,6 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
       t.category.toLowerCase().includes(query.toLowerCase()) ||
       t.shortLabel.toLowerCase().includes(query.toLowerCase())
   );
-
-  const autocompleteSuggestions = useMemo(() => {
-    if (!query.trim() || query.length < 1) return [];
-    return TOOLS_REGISTRY.filter(
-      (t) =>
-        t.name.toLowerCase().includes(query.toLowerCase()) ||
-        t.shortLabel.toLowerCase().includes(query.toLowerCase())
-    ).slice(0, 4);
-  }, [query]);
 
   const starredTools = filteredTools.filter((t) => favoriteIds.includes(t.id));
   const otherTools = filteredTools.filter((t) => !favoriteIds.includes(t.id));
