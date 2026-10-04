@@ -21,6 +21,8 @@ import { UnitConverter } from './components/tools/UnitConverter';
 import { QrGenerator } from './components/tools/QrGenerator';
 import { CountdownTool } from './components/tools/CountdownTool';
 import { PrecisionTimerTool } from './components/tools/PrecisionTimerTool';
+import { SpeedTestTool } from './components/tools/SpeedTestTool';
+import { TypingSpeedTool } from './components/tools/TypingSpeedTool';
 
 // Extended Tool Suite
 import { MarkdownEditor } from './components/tools/MarkdownEditor';
@@ -92,6 +94,8 @@ import {
 import { CheckCircle2, AlertTriangle, Sparkles, Database, Star } from 'lucide-react';
 
 const DEFAULT_BASELINE_USAGE: Record<string, number> = {
+  'speed-test': 142,
+  'typing-test': 139,
   'precision-timer': 136,
   'countdown': 124,
   'health-suite': 112,
@@ -1077,6 +1081,8 @@ export default function App() {
         {activeTab === 'text-tools' && <TextTools />}
         {activeTab === 'unit-converter' && <UnitConverter />}
         {activeTab === 'qr-generator' && <QrGenerator />}
+        {activeTab === 'speed-test' && <SpeedTestTool />}
+        {activeTab === 'typing-test' && <TypingSpeedTool />}
         {activeTab === 'precision-timer' && <PrecisionTimerTool />}
         {activeTab === 'countdown' && <CountdownTool />}
 

@@ -23,6 +23,7 @@ import {
   FileSpreadsheet,
   Code2,
   Server,
+  Gauge,
   DollarSign,
   Waves,
   Heart,
@@ -82,6 +83,8 @@ export const TOOLS_REGISTRY: ToolMeta[] = [
   { id: 'unit-converter', name: 'Universal Unit Converter', shortLabel: 'Unit Converter', desc: 'Convert length, weight, data & speed', icon: ArrowRightLeft, category: 'Math & Finance' },
 
   // Productivity
+  { id: 'speed-test', name: 'Network & Bulk Speed Test', shortLabel: 'Speed Test', desc: 'Download/upload bandwidth & raw bulk data transfer', icon: Gauge, category: 'Productivity', badge: 'New' },
+  { id: 'typing-test', name: 'Typing Speed Test (WPM)', shortLabel: 'Typing Test', desc: 'Real-time WPM, accuracy & character metrics', icon: Keyboard, category: 'Productivity', badge: 'New' },
   { id: 'precision-timer', name: 'High-Precision Percentage Timer', shortLabel: 'Precision Timer', desc: 'Timer with dynamic decimal progress bar ticking 10x/sec', icon: Timer, category: 'Productivity', badge: 'New' },
   { id: 'countdown', name: 'Event Countdown Timer', shortLabel: 'Countdown Timer', desc: 'Real-time countdown in mm:dd:hh:mm:ss format', icon: Clock, category: 'Productivity', badge: 'New' },
   { id: 'time-converter', name: 'Time & World Clocks', shortLabel: 'Time & Clocks', desc: 'Unix timestamps & world timezones', icon: Clock, category: 'Productivity' },
