@@ -123,9 +123,9 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
                 </span>
                 <button
                   onClick={handleClearRecent}
-                  className="text-[10px] text-slate-500 hover:text-rose-400 transition flex items-center gap-1"
+                  className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-[10px] font-bold text-slate-300 hover:text-rose-400 transition flex items-center gap-1"
                 >
-                  <Trash2 className="w-3 h-3" /> Clear
+                  <Trash2 className="w-3 h-3 text-rose-400" /> Clear All
                 </button>
               </div>
               <div className="flex flex-wrap gap-1.5">
