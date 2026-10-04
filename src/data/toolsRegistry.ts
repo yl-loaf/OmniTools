@@ -97,3 +97,40 @@ export const TOOLS_REGISTRY: ToolMeta[] = [
 ];
 
 export const DEFAULT_FAVORITE_IDS = ['health-suite', 'finance-suite', 'productivity-suite', 'calculator', 'markdown', 'json-studio', 'color-studio', 'password-gen'];
+
+import { ThemeConfig, ThemeId } from '../types';
+
+export const THEMES: Record<ThemeId, ThemeConfig> = {
+  indigo: {
+    id: 'indigo',
+    name: 'Deep Indigo',
+    bgClass: 'bg-slate-950 text-slate-100',
+    cardBgClass: 'bg-slate-900',
+    borderClass: 'border-slate-800',
+    accentClass: 'from-blue-600 via-indigo-600 to-purple-600',
+  },
+  cyberpunk: {
+    id: 'cyberpunk',
+    name: 'Cyberpunk Neon',
+    bgClass: 'bg-black text-pink-50',
+    cardBgClass: 'bg-neutral-950',
+    borderClass: 'border-pink-900/60',
+    accentClass: 'from-pink-600 via-purple-600 to-cyan-500',
+  },
+  emerald: {
+    id: 'emerald',
+    name: 'Emerald Matrix',
+    bgClass: 'bg-[#021008] text-emerald-50',
+    cardBgClass: 'bg-[#041c10]',
+    borderClass: 'border-emerald-900/60',
+    accentClass: 'from-emerald-600 via-teal-600 to-green-500',
+  },
+  minimalist: {
+    id: 'minimalist',
+    name: 'Minimalist Dark',
+    bgClass: 'bg-[#121212] text-zinc-100',
+    cardBgClass: 'bg-[#1a1a1a]',
+    borderClass: 'border-zinc-800',
+    accentClass: 'from-zinc-700 via-zinc-600 to-zinc-500',
+  },
+};

@@ -1,3 +1,14 @@
+export type ThemeId = 'indigo' | 'cyberpunk' | 'emerald' | 'minimalist';
+
+export interface ThemeConfig {
+  id: ThemeId;
+  name: string;
+  bgClass: string;
+  cardBgClass: string;
+  borderClass: string;
+  accentClass: string;
+}
+
 export type RequestCategory = 'math' | 'productivity' | 'text' | 'conversion' | 'developer' | 'utility' | 'other';
 export type RequestStatus = 'pending' | 'in_progress' | 'completed' | 'rejected';
 

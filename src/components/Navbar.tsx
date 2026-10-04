@@ -4,7 +4,8 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { UserProfile, FirebaseCustomConfig, ADMIN_EMAIL } from '../types';
+import { UserProfile, FirebaseCustomConfig, ADMIN_EMAIL, ThemeId } from '../types';
+import { THEMES } from '../data/toolsRegistry';
 import { APP_VERSION } from '../../version.js';
 import {
   Wrench,
@@ -66,6 +67,8 @@ interface NavbarProps {
   onOpenSearch: () => void;
   favoriteIds: string[];
   onToggleFavorite: (id: string) => void;
+  currentTheme: ThemeId;
+  onThemeChange: (theme: ThemeId) => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -81,16 +84,23 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenSearch,
   favoriteIds,
   onToggleFavorite,
+  currentTheme,
+  onThemeChange,
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const themeDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown on outside click
+  // Close dropdowns on outside click
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setDropdownOpen(false);
+      }
+      if (themeDropdownRef.current && !themeDropdownRef.current.contains(e.target as Node)) {
+        setThemeDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleOutsideClick);
@@ -319,10 +329,52 @@ export const Navbar: React.FC<NavbarProps> = ({
               </kbd>
             </button>
 
+            {/* Theme Picker Dropdown */}
+            <div className="relative" ref={themeDropdownRef}>
+              <button
+                onClick={() => setThemeDropdownOpen(!themeDropdownOpen)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition border border-slate-700 shadow-xs"
+                title="Customize workspace theme & accent"
+              >
+                <Palette className="w-3.5 h-3.5 text-purple-400" />
+                <span className="hidden md:inline">{THEMES[currentTheme]?.name || 'Theme'}</span>
+                <ChevronDown className="w-3 h-3 text-slate-400" />
+              </button>
+
+              {themeDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-2 z-50 space-y-1 animate-in fade-in">
+                  <div className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider px-2 py-1">
+                    Select Workspace Theme
+                  </div>
+                  {(Object.keys(THEMES) as ThemeId[]).map((tKey) => {
+                    const theme = THEMES[tKey];
+                    const isActive = currentTheme === tKey;
+                    return (
+                      <button
+                        key={tKey}
+                        onClick={() => {
+                          onThemeChange(tKey);
+                          setThemeDropdownOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition text-left ${
+                          isActive
+                            ? 'bg-blue-600 text-white font-bold'
+                            : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                        }`}
+                      >
+                        <span>{theme.name}</span>
+                        {isActive && <span className="w-2 h-2 rounded-full bg-white shadow-xs"></span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
             {currentUser && (
               <div
                 title={`${currentUser.displayName}'s Contribution Points`}
-                className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-950/60 border border-amber-700/50 rounded-xl text-amber-300 text-xs font-semibold shadow-xs"
+                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-amber-950/60 border border-amber-700/50 rounded-xl text-amber-300 text-xs font-semibold shadow-xs"
               >
                 <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
                 <span>{currentUser.contributionPoints} CP</span>

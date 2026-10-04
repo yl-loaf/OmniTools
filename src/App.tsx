@@ -12,7 +12,7 @@ import { ActiveToolHeader } from './components/ActiveToolHeader';
 import { HomePage } from './components/HomePage';
 import { ReportBugModal } from './components/ReportBugModal';
 import { FriendsHub } from './components/FriendsHub';
-import { TOOLS_REGISTRY, DEFAULT_FAVORITE_IDS } from './data/toolsRegistry';
+import { TOOLS_REGISTRY, DEFAULT_FAVORITE_IDS, THEMES } from './data/toolsRegistry';
 
 // Existing Tools
 import { ScientificCalculator } from './components/tools/ScientificCalculator';
@@ -64,7 +64,7 @@ import { ToolRequestHub } from './components/ToolRequestHub';
 import { AdminPortal } from './components/AdminPortal';
 import { Leaderboard } from './components/Leaderboard';
 import { TieredBadges } from './components/TieredBadges';
-import { ToolRequest, UserProfile, RequestStatus, FirebaseCustomConfig, ADMIN_EMAIL, ToolUsageStat, ToolIssue } from './types';
+import { ToolRequest, UserProfile, RequestStatus, FirebaseCustomConfig, ADMIN_EMAIL, ToolUsageStat, ToolIssue, ThemeId } from './types';
 import { APP_VERSION } from '../version.js';
 import {
   initFirebase,
@@ -123,6 +123,22 @@ const DEFAULT_BASELINE_USAGE: Record<string, number> = {
 };
 
 export default function App() {
+  const [currentTheme, setCurrentTheme] = useState<ThemeId>(() => {
+    try {
+      const saved = localStorage.getItem('omnitools_theme');
+      if (saved && (saved === 'indigo' || saved === 'cyberpunk' || saved === 'emerald' || saved === 'minimalist')) {
+        return saved as ThemeId;
+      }
+    } catch {}
+    return 'indigo';
+  });
+
+  const handleThemeChange = (theme: ThemeId) => {
+    setCurrentTheme(theme);
+    localStorage.setItem('omnitools_theme', theme);
+    showToast(`Switched workspace theme to ${THEMES[theme].name}! ✨`, 'success');
+  };
+
   const getInitialTab = () => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -1048,7 +1064,7 @@ export default function App() {
   const isToolView = TOOLS_REGISTRY.some((t) => t.id === activeTab);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
+    <div className={`min-h-screen ${THEMES[currentTheme].bgClass} flex flex-col font-sans selection:bg-blue-600 selection:text-white`}>
       {/* Toast Notification Container */}
       {toast && (
         <div className="fixed bottom-5 right-5 z-50 animate-bounce">
@@ -1083,6 +1099,8 @@ export default function App() {
         onOpenSearch={() => setSearchModalOpen(true)}
         favoriteIds={favoriteIds}
         onToggleFavorite={handleToggleFavorite}
+        currentTheme={currentTheme}
+        onThemeChange={handleThemeChange}
       />
 
       {/* Active Tab View */}
