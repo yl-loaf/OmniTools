@@ -11,6 +11,7 @@ import { FavoritesHub } from './components/FavoritesHub';
 import { ActiveToolHeader } from './components/ActiveToolHeader';
 import { HomePage } from './components/HomePage';
 import { ReportBugModal } from './components/ReportBugModal';
+import { FriendsHub } from './components/FriendsHub';
 import { TOOLS_REGISTRY, DEFAULT_FAVORITE_IDS } from './data/toolsRegistry';
 
 // Existing Tools
@@ -94,6 +95,7 @@ import {
 import { CheckCircle2, AlertTriangle, Sparkles, Database, Star } from 'lucide-react';
 
 const DEFAULT_BASELINE_USAGE: Record<string, number> = {
+  'friends-hub': 148,
   'speed-test': 142,
   'typing-test': 139,
   'precision-timer': 136,
@@ -362,6 +364,35 @@ export default function App() {
     }
   };
 
+  // Update Friends List
+  const handleUpdateFriends = async (newFriendIds: string[]) => {
+    if (!currentUser) return;
+    const updatedUser: UserProfile = {
+      ...currentUser,
+      friendIds: newFriendIds,
+      updatedAt: new Date().toISOString(),
+    };
+    setCurrentUser(updatedUser);
+    localStorage.setItem('omnitools_current_user', JSON.stringify(updatedUser));
+
+    const updatedUsers = users.map((u) => (u.uid === currentUser.uid ? updatedUser : u));
+    setUsers(updatedUsers);
+    saveLocalUsers(updatedUsers);
+
+    const { db, isConfigured } = initFirebase();
+    if (isConfigured && db) {
+      try {
+        await updateDoc(doc(db, 'users', currentUser.uid), {
+          friendIds: newFriendIds,
+          updatedAt: new Date().toISOString(),
+        });
+      } catch (e) {
+        console.warn('Firestore update friends error:', e);
+      }
+    }
+    showToast('Friends list updated successfully!', 'success');
+  };
+
   // Global keyboard shortcut for quick search (Ctrl+K or Cmd+K)
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -395,6 +426,7 @@ export default function App() {
           const existingPoints = existingLocal && existingLocal.uid === user.uid ? existingLocal.contributionPoints : 0;
           const existingStreak = existingLocal && existingLocal.uid === user.uid ? existingLocal.streakDays : 1;
           const existingShipped = existingLocal && existingLocal.uid === user.uid ? (existingLocal.shippedTools || []) : [];
+          const existingFriends = existingLocal && existingLocal.uid === user.uid ? (existingLocal.friendIds || []) : [];
 
           const userProfile: UserProfile = {
             uid: user.uid,
@@ -410,6 +442,7 @@ export default function App() {
             unlockedBadgeIds: existingLocal?.unlockedBadgeIds || [],
             shippedTools: existingShipped,
             favoriteToolIds: favoriteIds,
+            friendIds: existingFriends,
             createdAt: existingLocal?.createdAt || new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           };
@@ -589,6 +622,7 @@ export default function App() {
         unlockedBadgeIds: ['first-spark', 'master-architect'],
         shippedTools: existing?.shippedTools || [],
         favoriteToolIds: favoriteIds,
+        friendIds: existing?.friendIds || [],
         createdAt: existing?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -629,6 +663,7 @@ export default function App() {
         unlockedBadgeIds: [],
         shippedTools: [],
         favoriteToolIds: favoriteIds,
+        friendIds: existing?.friendIds || [],
         createdAt: existing?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -1085,6 +1120,14 @@ export default function App() {
         {activeTab === 'typing-test' && <TypingSpeedTool />}
         {activeTab === 'precision-timer' && <PrecisionTimerTool />}
         {activeTab === 'countdown' && <CountdownTool />}
+        {activeTab === 'friends-hub' && (
+          <FriendsHub
+            currentUser={currentUser}
+            users={users}
+            onUpdateFriends={handleUpdateFriends}
+            onOpenAuth={handleLoginGoogle}
+          />
+        )}
 
         {/* Extended Suite Tools */}
         {activeTab === 'markdown' && <MarkdownEditor />}

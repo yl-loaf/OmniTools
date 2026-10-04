@@ -74,6 +74,8 @@ export interface UserProfile {
   unlockedBadgeIds: string[];
   shippedTools?: ShippedToolRecord[];
   favoriteToolIds?: string[];
+  friendIds?: string[];
+  friendRequests?: string[];
   createdAt: string;
   updatedAt: string;
 }

@@ -28,7 +28,8 @@ import {
   Waves,
   Heart,
   CloudSun,
-  Award
+  Award,
+  Users
 } from 'lucide-react';
 
 export interface ToolMeta {
@@ -92,6 +93,7 @@ export const TOOLS_REGISTRY: ToolMeta[] = [
   { id: 'text-tools', name: 'Text & String Transformation', shortLabel: 'Text Tools', desc: 'Case conversions, word count & diff', icon: Type, category: 'Productivity' },
   { id: 'lorem-gen', name: 'Lorem Ipsum Generator', shortLabel: 'Lorem Ipsum', desc: 'Mock copy paragraphs, words & HTML tags', icon: FileText, category: 'Productivity' },
   { id: 'sound-synth', name: 'Binaural Beats & White Noise', shortLabel: 'Noise & Binaural', desc: 'White/pink noise & theta focus waves', icon: Waves, category: 'Productivity', badge: 'Audio' },
+  { id: 'friends-hub', name: 'Friends & Social Network', shortLabel: 'Friends Hub', desc: 'Add friends & view names across contributions', icon: Users, category: 'Productivity', badge: 'Social' },
 ];
 
 export const DEFAULT_FAVORITE_IDS = ['health-suite', 'finance-suite', 'productivity-suite', 'calculator', 'markdown', 'json-studio', 'color-studio', 'password-gen'];

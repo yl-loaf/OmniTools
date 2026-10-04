@@ -44,7 +44,8 @@ import {
   Star,
   Heart,
   CloudSun,
-  Award
+  Award,
+  Users
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -147,6 +148,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         { id: 'text-tools', label: 'Text & String Tools', icon: Type, desc: 'Case conversions, word count & diff' },
         { id: 'lorem-gen', label: 'Lorem Ipsum Generator', icon: FileText, desc: 'Mock copy paragraphs, words & HTML tags' },
         { id: 'sound-synth', label: 'Binaural & Noise Synth', icon: Waves, desc: 'White/pink noise & theta focus waves' },
+        { id: 'friends-hub', label: 'Friends & Social Hub', icon: Users, desc: 'Add friends & see names in contributions' },
         { id: 'unit-converter', label: 'Unit Converter', icon: ArrowRightLeft, desc: 'Universal metrics & conversions' },
       ],
     },
