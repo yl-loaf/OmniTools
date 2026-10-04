@@ -393,12 +393,32 @@ export default function App() {
     showToast('Friends list updated successfully!', 'success');
   };
 
-  // Global keyboard shortcut for quick search (Ctrl+K or Cmd+K)
+  // Global keyboard shortcuts for navigation & search
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      const target = e.target as HTMLElement;
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) {
+        return;
+      }
+
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setSearchModalOpen((prev) => !prev);
+      } else if (!e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) {
+        const key = e.key.toLowerCase();
+        if (key === 'h') {
+          e.preventDefault();
+          setActiveTab('home');
+        } else if (key === 'l') {
+          e.preventDefault();
+          setActiveTab('leaderboard');
+        } else if (key === 'f') {
+          e.preventDefault();
+          setActiveTab('favorites');
+        } else if (key === 'r') {
+          e.preventDefault();
+          setActiveTab('request-hub');
+        }
       }
     };
     window.addEventListener('keydown', handleGlobalKeyDown);
@@ -1230,6 +1250,29 @@ export default function App() {
           onOpenAuth={handleLoginGoogle}
         />
       )}
+
+      {/* Keyboard Shortcuts Footer Legend */}
+      <footer className="mt-20 border-t border-slate-800 bg-slate-950 py-6 text-center text-xs text-slate-500 space-y-3">
+        <div className="flex items-center justify-center gap-2 flex-wrap px-4">
+          <span className="font-bold text-slate-400">Keyboard Shortcuts:</span>
+          <span className="px-2 py-1 bg-slate-900 border border-slate-800 rounded-md font-mono text-slate-300">
+            <strong className="text-blue-400">H</strong> Home
+          </span>
+          <span className="px-2 py-1 bg-slate-900 border border-slate-800 rounded-md font-mono text-slate-300">
+            <strong className="text-amber-400">L</strong> Leaderboard
+          </span>
+          <span className="px-2 py-1 bg-slate-900 border border-slate-800 rounded-md font-mono text-slate-300">
+            <strong className="text-purple-400">F</strong> Favorites
+          </span>
+          <span className="px-2 py-1 bg-slate-900 border border-slate-800 rounded-md font-mono text-slate-300">
+            <strong className="text-cyan-400">R</strong> Requests
+          </span>
+          <span className="px-2 py-1 bg-slate-900 border border-slate-800 rounded-md font-mono text-slate-300">
+            <strong className="text-emerald-400">Ctrl+K</strong> Search
+          </span>
+        </div>
+        <div>OmniTools Platform Architect • Professional Web Utility Suite</div>
+      </footer>
     </div>
   );
 }
