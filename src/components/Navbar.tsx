@@ -406,6 +406,16 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
             </div>
 
+            {/* Settings Button */}
+            <a
+              href="./settings.html"
+              title="Workspace Settings"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition border border-slate-700 shadow-xs"
+            >
+              <Settings className="w-3.5 h-3.5 text-blue-400" />
+              <span className="hidden sm:inline">Settings</span>
+            </a>
+
             {currentUser && (
               <div
                 title={`${currentUser.displayName}'s Contribution Points`}
@@ -539,8 +549,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span>Admin</span>
               </button>
             </div>
-            {currentUser && (
-              <div className="pt-2">
+            <div className="pt-2 space-y-2">
+              <a
+                href="./settings.html"
+                className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl text-xs font-bold flex items-center justify-center gap-2"
+              >
+                <Settings className="w-4 h-4 text-blue-400" />
+                <span>Open Workspace Settings</span>
+              </a>
+              {currentUser && (
                 <a
                   href="/OmniTools/profile.html"
                   className="w-full py-2.5 bg-blue-600/20 border border-blue-500/40 text-blue-300 rounded-xl text-xs font-bold flex items-center justify-center gap-2"
@@ -548,8 +565,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <ExternalLink className="w-4 h-4" />
                   <span>View Dedicated Profile Page & CP Ledger</span>
                 </a>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
       </div>
