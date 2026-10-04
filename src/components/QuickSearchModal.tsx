@@ -63,11 +63,14 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
 
   const autocompleteSuggestions = useMemo(() => {
     if (!isOpen || !query.trim() || query.length < 1) return [];
+    const q = query.toLowerCase().trim();
     return TOOLS_REGISTRY.filter(
       (t) =>
-        t.name.toLowerCase().includes(query.toLowerCase()) ||
-        t.shortLabel.toLowerCase().includes(query.toLowerCase())
-    ).slice(0, 4);
+        t.name.toLowerCase().includes(q) ||
+        t.shortLabel.toLowerCase().includes(q) ||
+        t.desc.toLowerCase().includes(q) ||
+        (t.keywords && t.keywords.some((k) => k.toLowerCase().includes(q)))
+    ).slice(0, 5);
   }, [isOpen, query]);
 
   if (!isOpen) return null;
@@ -105,13 +108,17 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
     }
   };
 
-  const filteredTools = TOOLS_REGISTRY.filter(
-    (t) =>
-      t.name.toLowerCase().includes(query.toLowerCase()) ||
-      t.desc.toLowerCase().includes(query.toLowerCase()) ||
-      t.category.toLowerCase().includes(query.toLowerCase()) ||
-      t.shortLabel.toLowerCase().includes(query.toLowerCase())
-  );
+  const filteredTools = TOOLS_REGISTRY.filter((t) => {
+    const q = query.toLowerCase().trim();
+    if (!q) return true;
+    const matchName = t.name.toLowerCase().includes(q);
+    const matchDesc = t.desc.toLowerCase().includes(q);
+    const matchCat = t.category.toLowerCase().includes(q);
+    const matchShort = t.shortLabel.toLowerCase().includes(q);
+    const matchId = t.id.toLowerCase().includes(q);
+    const matchKeywords = t.keywords ? t.keywords.some((k) => k.toLowerCase().includes(q)) : false;
+    return matchName || matchDesc || matchCat || matchShort || matchId || matchKeywords;
+  });
 
   const starredTools = filteredTools.filter((t) => favoriteIds.includes(t.id));
   const otherTools = filteredTools.filter((t) => !favoriteIds.includes(t.id));

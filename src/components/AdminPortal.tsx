@@ -5,6 +5,7 @@ import {
   RequestStatus,
   RequestCategory,
   ADMIN_EMAIL,
+  isAdminEmail,
   ShippedToolRecord,
   ToolIssue
 } from '../types';
@@ -78,7 +79,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
 
   const isAuthorized = useMemo(() => {
     if (!currentUser) return false;
-    if (currentUser.email && currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+    if (currentUser.email && isAdminEmail(currentUser.email)) {
       return true;
     }
     return false;

@@ -52,7 +52,8 @@ import {
   CloudSun,
   Award,
   Users,
-  Box
+  Box,
+  ShieldAlert
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -330,6 +331,20 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <Trophy className="w-3.5 h-3.5 text-amber-400" />
                 <span>Leaderboard</span>
               </button>
+
+              {/* Small Admin Button */}
+              <button
+                onClick={() => setActiveTab('admin')}
+                title="Admin Management Portal"
+                className={`px-2.5 py-1.5 rounded-xl text-xs font-extrabold transition flex items-center gap-1.5 ${
+                  activeTab === 'admin'
+                    ? 'bg-rose-600 text-white shadow-md shadow-rose-500/30'
+                    : 'bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/60 hover:text-white'
+                }`}
+              >
+                <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
+                <span>Admin</span>
+              </button>
             </nav>
           </div>
 
@@ -465,7 +480,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
           <div className="lg:hidden py-4 border-t border-slate-800 max-h-[80vh] overflow-y-auto space-y-3">
-            <div className="grid grid-cols-5 gap-1">
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-1">
               <button
                 onClick={() => {
                   setActiveTab('home');
@@ -510,6 +525,16 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className={`p-2 rounded-xl text-xs font-bold text-center ${activeTab === 'leaderboard' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}`}
               >
                 Ranks
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab('admin');
+                  setMobileMenuOpen(false);
+                }}
+                className={`p-2 rounded-xl text-xs font-bold text-center flex items-center justify-center gap-1 ${activeTab === 'admin' ? 'bg-rose-600 text-white' : 'bg-rose-950/60 text-rose-300 border border-rose-800/60'}`}
+              >
+                <ShieldAlert className="w-3 h-3" />
+                <span>Admin</span>
               </button>
             </div>
             {currentUser && (

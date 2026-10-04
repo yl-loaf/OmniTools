@@ -21,7 +21,9 @@ import {
   TrendingUp,
   Users,
   Search,
-  Box
+  Box,
+  Info,
+  Check
 } from 'lucide-react';
 
 interface HomePageProps {
@@ -35,6 +37,32 @@ interface HomePageProps {
   onOpenAuth: () => void;
   onOpenSearch: () => void;
 }
+
+// Function to generate bulleted capabilities for the tooltip
+const getToolCapabilities = (toolId: string, desc: string): string[] => {
+  if (toolId === 'health-suite') return ['BMI & TDEE calculators', 'Intermittent fasting timer', 'Daily hydration & sleep cycles'];
+  if (toolId === 'finance-suite') return ['Salary & income tax estimator', 'Compound growth & loan calculator', 'Road trip fuel & recipe scaler'];
+  if (toolId === 'productivity-suite') return ['Pomodoro timer with laps', 'Global timezone world clocks', 'Eisenhower priority matrix'];
+  if (toolId === 'home-suite') return ['Parking meter alert timer', 'Luggage packing volume calculator', 'Weather heat index & windchill'];
+  if (toolId === 'quick-utils-suite') return ['GPA calculator & scale converter', 'Stacked retail sale discounts', 'Morse code & random generator'];
+  if (toolId === '3d-viewer') return ['STL / OBJ / 3MF / PLY file support', 'Interactive orbit & zoom controls', 'Mesh polygon & vertex statistics'];
+  if (toolId === 'file-converter' || toolId.startsWith('convert-')) return ['100+ format permutations', 'Lossless client-side conversion', 'Batch processing & instant download'];
+  if (toolId === 'markdown') return ['Live GitHub Flavored preview', 'HTML/PDF export', 'Table editor & word metrics'];
+  if (toolId === 'json-studio') return ['Syntax validation & formatting', 'Collapsible tree visualizer', 'TypeScript interface generator'];
+  if (toolId === 'color-studio') return ['Tailwind & HEX palette generator', 'WCAG 2.1 contrast ratio checker', 'Harmonies & gradient builder'];
+  if (toolId === 'regex-tester') return ['Real-time regex matching', 'Capture groups & substitutions', 'Common preset patterns'];
+  if (toolId === 'speed-test') return ['Bandwidth & latency test', 'Bulk data transfer benchmarks', 'Jitter & packet loss metrics'];
+  if (toolId === 'typing-test') return ['Real-time WPM calculation', 'Accuracy percentage & error tracker', 'Speed milestones'];
+  if (toolId === 'precision-timer') return ['Ticking 10x/sec progress bar', 'Precision hundredths of a second', 'Visual percentage readout'];
+  if (toolId === 'countdown') return ['Custom target date & time', 'Days, hours, mins, secs breakdown', 'Shareable countdown link'];
+  if (toolId === 'calculator') return ['Trigonometry & scientific functions', 'Parentheses & exponent support', 'Memory store/recall history'];
+  if (toolId === 'crypto-encoder') return ['Base64 text & image conversion', 'SHA-256 / SHA-512 hashes', 'Live encoding breakdown'];
+  if (toolId === 'password-gen') return ['NIST password guidelines', 'Custom entropy & passphrases', 'UUID v4 batch generation'];
+
+  // Default fallback parsed from description
+  const parts = desc.split(/[,&•]/).map((s) => s.trim()).filter(Boolean);
+  return parts.length > 0 ? parts.slice(0, 3) : ['Client-side processing', 'Instant execution', 'Zero data leaves your browser'];
+};
 
 export const HomePage: React.FC<HomePageProps> = ({
   setActiveTab,
@@ -72,7 +100,7 @@ export const HomePage: React.FC<HomePageProps> = ({
         <div className="max-w-3xl relative z-10 space-y-6">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-950/80 text-blue-300 border border-blue-800/80 text-xs font-bold shadow-xs">
             <Sparkles className="w-3.5 h-3.5 text-blue-400 animate-pulse" />
-            <span>{totalTools}+ Production Web Utilities & 100+ File Conversion Suite</span>
+            <span>{totalTools}+ Production Web Utilities & Open Community Platform</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight">
@@ -94,7 +122,7 @@ export const HomePage: React.FC<HomePageProps> = ({
             >
               <Search className="w-5 h-5 text-blue-400 group-hover:scale-110 transition shrink-0" />
               <span className="text-sm text-slate-300 font-semibold flex-1">
-                Search {totalTools}+ tools, converters, or 3D viewer...
+                Search {totalTools}+ tools, utilities, or commands...
               </span>
               <kbd className="px-2.5 py-1 bg-slate-800 text-slate-300 rounded-lg text-xs font-mono border border-slate-700 shadow-xs">
                 ⌘K
@@ -104,18 +132,11 @@ export const HomePage: React.FC<HomePageProps> = ({
 
           <div className="flex flex-wrap items-center gap-3 pt-2">
             <button
-              onClick={() => setActiveTab('file-converter')}
+              onClick={() => setActiveTab('health-suite')}
               className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs sm:text-sm font-extrabold transition flex items-center gap-2 shadow-lg shadow-blue-500/30 group"
             >
-              <span>Explore {totalTools}+ Tools & 100+ Converters</span>
+              <span>Explore {totalTools}+ Tools</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
-            </button>
-            <button
-              onClick={() => setActiveTab('3d-viewer')}
-              className="px-5 py-3 bg-purple-600/90 hover:bg-purple-600 text-white rounded-xl text-xs sm:text-sm font-extrabold transition flex items-center gap-2 shadow-lg shadow-purple-500/30"
-            >
-              <Box className="w-4 h-4" />
-              <span>3D STL/OBJ Viewer</span>
             </button>
             <button
               onClick={() => setActiveTab('request-hub')}
@@ -229,28 +250,75 @@ export const HomePage: React.FC<HomePageProps> = ({
             const Icon = tool.icon;
             const count = usageCounts[tool.id] || 0;
             const isFav = favoriteIds.includes(tool.id);
+            const capabilities = getToolCapabilities(tool.id, tool.desc);
 
             return (
               <div
                 key={tool.id}
                 onClick={() => setActiveTab(tool.id)}
-                className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-2xl p-5 shadow-lg flex flex-col justify-between group cursor-pointer transition hover:shadow-2xl hover:shadow-blue-500/10"
+                className="relative bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-2xl p-5 shadow-lg flex flex-col justify-between group cursor-pointer transition hover:shadow-2xl hover:shadow-blue-500/10"
               >
+                {/* Informative Hover Tooltip */}
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-80 max-w-[90vw] bg-slate-950/95 backdrop-blur-xl border border-slate-700 rounded-2xl p-4 shadow-2xl z-40 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 transform translate-y-1 group-hover:translate-y-0 text-left">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-800 gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="p-1.5 rounded-lg bg-blue-950 text-blue-400 border border-blue-800 shrink-0">
+                        <Icon className="w-3.5 h-3.5" />
+                      </div>
+                      <span className="font-bold text-xs text-white truncate">{tool.name}</span>
+                    </div>
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800 shrink-0">
+                      {tool.category}
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-slate-300 mt-2 leading-relaxed">
+                    {tool.desc}
+                  </p>
+
+                  <div className="mt-2.5 pt-2 border-t border-slate-800 space-y-1">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                      Core Functionality:
+                    </span>
+                    {capabilities.map((cap, idx) => (
+                      <div key={idx} className="flex items-center gap-1.5 text-[11px] text-slate-300">
+                        <Check className="w-3 h-3 text-emerald-400 shrink-0" />
+                        <span>{cap}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-2.5 pt-2 border-t border-slate-800 flex items-center justify-between text-[10px] text-slate-400">
+                    <span className="flex items-center gap-1 text-amber-400 font-medium">
+                      <Activity className="w-3 h-3" /> {count} launches
+                    </span>
+                    <span className="text-blue-400 font-bold">Click to launch →</span>
+                  </div>
+
+                  {/* Tooltip downward arrow */}
+                  <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-950 border-r border-b border-slate-700 rotate-45" />
+                </div>
+
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="p-2.5 rounded-xl bg-slate-800 group-hover:bg-blue-600 text-blue-400 group-hover:text-white transition shadow-sm">
                       <Icon className="w-5 h-5" />
                     </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onToggleFavorite(tool.id);
-                      }}
-                      className="p-1.5 text-amber-400 hover:text-slate-500 transition rounded-lg hover:bg-slate-800"
-                      title={isFav ? 'Remove from favorites' : 'Star tool'}
-                    >
-                      <Star className={`w-4 h-4 ${isFav ? 'fill-amber-400 text-amber-400' : 'text-slate-500'}`} />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <div className="p-1.5 text-slate-500 group-hover:text-slate-300 transition" title="Hover to view functionality">
+                        <Info className="w-3.5 h-3.5" />
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onToggleFavorite(tool.id);
+                        }}
+                        className="p-1.5 text-amber-400 hover:text-slate-500 transition rounded-lg hover:bg-slate-800"
+                        title={isFav ? 'Remove from favorites' : 'Star tool'}
+                      >
+                        <Star className={`w-4 h-4 ${isFav ? 'fill-amber-400 text-amber-400' : 'text-slate-500'}`} />
+                      </button>
+                    </div>
                   </div>
 
                   <div>
@@ -296,8 +364,35 @@ export const HomePage: React.FC<HomePageProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div
             onClick={() => setActiveTab('health-suite')}
-            className="p-5 bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-2xl cursor-pointer transition group space-y-2"
+            className="relative p-5 bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-2xl cursor-pointer transition group space-y-2 hover:shadow-xl hover:shadow-rose-500/10"
           >
+            {/* Tooltip */}
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-80 max-w-[90vw] bg-slate-950/95 backdrop-blur-xl border border-slate-700 rounded-2xl p-4 shadow-2xl z-40 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 transform translate-y-1 group-hover:translate-y-0 text-left">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                <span className="font-bold text-xs text-white flex items-center gap-1.5">
+                  <Heart className="w-3.5 h-3.5 text-rose-400" /> Health & Tips Suite
+                </span>
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800">
+                  6 Included Tools
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 mt-2 leading-relaxed">
+                Complete daily health and dining toolkit with interactive calculators and visual tracking metrics.
+              </p>
+              <div className="mt-2.5 pt-2 border-t border-slate-800 space-y-1">
+                {['BMI & TDEE Basal Metabolic Calculators', 'Intermittent Fasting Interval Timer', 'Daily Hydration Water Goal Tracker', 'Sleep Cycle 90-Minute Rem Calculator', 'Fair Bill & Restaurant Tip Splitter'].map((item, i) => (
+                  <div key={i} className="flex items-center gap-1.5 text-[11px] text-slate-300">
+                    <Check className="w-3 h-3 text-emerald-400 shrink-0" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-2.5 pt-2 border-t border-slate-800 text-[10px] text-blue-400 font-bold text-right">
+                Click to open suite →
+              </div>
+              <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-950 border-r border-b border-slate-700 rotate-45" />
+            </div>
+
             <div className="w-10 h-10 rounded-xl bg-rose-950 text-rose-400 border border-rose-800 flex items-center justify-center">
               <Heart className="w-5 h-5" />
             </div>
@@ -307,8 +402,35 @@ export const HomePage: React.FC<HomePageProps> = ({
 
           <div
             onClick={() => setActiveTab('finance-suite')}
-            className="p-5 bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-2xl cursor-pointer transition group space-y-2"
+            className="relative p-5 bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-2xl cursor-pointer transition group space-y-2 hover:shadow-xl hover:shadow-emerald-500/10"
           >
+            {/* Tooltip */}
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-80 max-w-[90vw] bg-slate-950/95 backdrop-blur-xl border border-slate-700 rounded-2xl p-4 shadow-2xl z-40 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 transform translate-y-1 group-hover:translate-y-0 text-left">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                <span className="font-bold text-xs text-white flex items-center gap-1.5">
+                  <DollarSign className="w-3.5 h-3.5 text-emerald-400" /> Finance & Savings Suite
+                </span>
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">
+                  5 Included Tools
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 mt-2 leading-relaxed">
+                Smart financial modeling, cooking ingredient scaling, and road trip cost optimization.
+              </p>
+              <div className="mt-2.5 pt-2 border-t border-slate-800 space-y-1">
+                {['Take-Home Salary & Tax Bracket Estimator', 'Compound Interest & Savings Accumulator', 'Cooking Recipe Serving Scaler', 'Road Trip Fuel & Gas Cost Calculator', 'Retail Markup vs Profit Margin Solver'].map((item, i) => (
+                  <div key={i} className="flex items-center gap-1.5 text-[11px] text-slate-300">
+                    <Check className="w-3 h-3 text-emerald-400 shrink-0" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-2.5 pt-2 border-t border-slate-800 text-[10px] text-blue-400 font-bold text-right">
+                Click to open suite →
+              </div>
+              <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-950 border-r border-b border-slate-700 rotate-45" />
+            </div>
+
             <div className="w-10 h-10 rounded-xl bg-emerald-950 text-emerald-400 border border-emerald-800 flex items-center justify-center">
               <DollarSign className="w-5 h-5" />
             </div>
@@ -318,8 +440,35 @@ export const HomePage: React.FC<HomePageProps> = ({
 
           <div
             onClick={() => setActiveTab('productivity-suite')}
-            className="p-5 bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-2xl cursor-pointer transition group space-y-2"
+            className="relative p-5 bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-2xl cursor-pointer transition group space-y-2 hover:shadow-xl hover:shadow-blue-500/10"
           >
+            {/* Tooltip */}
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-80 max-w-[90vw] bg-slate-950/95 backdrop-blur-xl border border-slate-700 rounded-2xl p-4 shadow-2xl z-40 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 transform translate-y-1 group-hover:translate-y-0 text-left">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                <span className="font-bold text-xs text-white flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-blue-400" /> Productivity & Planning
+                </span>
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800">
+                  5 Included Tools
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 mt-2 leading-relaxed">
+                Time management, travel logistics, priority matrices, and reading speed calculations.
+              </p>
+              <div className="mt-2.5 pt-2 border-t border-slate-800 space-y-1">
+                {['Global Timezone World Clocks & Overlaps', 'Travel ETA & Average Speed Calculator', 'Eisenhower Urgent/Important Task Matrix', 'Article Reading Time & Word Counter', 'Pomodoro Focus Timer & Stopwatch'].map((item, i) => (
+                  <div key={i} className="flex items-center gap-1.5 text-[11px] text-slate-300">
+                    <Check className="w-3 h-3 text-emerald-400 shrink-0" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-2.5 pt-2 border-t border-slate-800 text-[10px] text-blue-400 font-bold text-right">
+                Click to open suite →
+              </div>
+              <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-950 border-r border-b border-slate-700 rotate-45" />
+            </div>
+
             <div className="w-10 h-10 rounded-xl bg-blue-950 text-blue-400 border border-blue-800 flex items-center justify-center">
               <Clock className="w-5 h-5" />
             </div>
@@ -329,8 +478,35 @@ export const HomePage: React.FC<HomePageProps> = ({
 
           <div
             onClick={() => setActiveTab('home-suite')}
-            className="p-5 bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-2xl cursor-pointer transition group space-y-2"
+            className="relative p-5 bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-2xl cursor-pointer transition group space-y-2 hover:shadow-xl hover:shadow-amber-500/10"
           >
+            {/* Tooltip */}
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-80 max-w-[90vw] bg-slate-950/95 backdrop-blur-xl border border-slate-700 rounded-2xl p-4 shadow-2xl z-40 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 transform translate-y-1 group-hover:translate-y-0 text-left">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                <span className="font-bold text-xs text-white flex items-center gap-1.5">
+                  <CloudSun className="w-3.5 h-3.5 text-amber-400" /> Home, Travel & Packing
+                </span>
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800">
+                  4 Included Tools
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 mt-2 leading-relaxed">
+                Packing volume solvers, parking expiration timers, and weather atmospheric heat index.
+              </p>
+              <div className="mt-2.5 pt-2 border-t border-slate-800 space-y-1">
+                {['Smart Parking Meter Expiration Alert Timer', 'Luggage & Box Volume Packing Calculator', 'Weather Heat Index & Windchill Solver', 'Interactive Travel Packing Checklist'].map((item, i) => (
+                  <div key={i} className="flex items-center gap-1.5 text-[11px] text-slate-300">
+                    <Check className="w-3 h-3 text-emerald-400 shrink-0" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-2.5 pt-2 border-t border-slate-800 text-[10px] text-blue-400 font-bold text-right">
+                Click to open suite →
+              </div>
+              <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-950 border-r border-b border-slate-700 rotate-45" />
+            </div>
+
             <div className="w-10 h-10 rounded-xl bg-amber-950 text-amber-400 border border-amber-800 flex items-center justify-center">
               <CloudSun className="w-5 h-5" />
             </div>
@@ -340,8 +516,35 @@ export const HomePage: React.FC<HomePageProps> = ({
 
           <div
             onClick={() => setActiveTab('markdown')}
-            className="p-5 bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-2xl cursor-pointer transition group space-y-2"
+            className="relative p-5 bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-2xl cursor-pointer transition group space-y-2 hover:shadow-xl hover:shadow-purple-500/10"
           >
+            {/* Tooltip */}
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-80 max-w-[90vw] bg-slate-950/95 backdrop-blur-xl border border-slate-700 rounded-2xl p-4 shadow-2xl z-40 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 transform translate-y-1 group-hover:translate-y-0 text-left">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                <span className="font-bold text-xs text-white flex items-center gap-1.5">
+                  <Wrench className="w-3.5 h-3.5 text-purple-400" /> Developer & Code Lab
+                </span>
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-800">
+                  15+ Developer Utilities
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 mt-2 leading-relaxed">
+                Full-stack developer utilities for formatting, debugging, converting, and analyzing code.
+              </p>
+              <div className="mt-2.5 pt-2 border-t border-slate-800 space-y-1">
+                {['Markdown GFM Live Editor & HTML Exporter', 'JSON Validator, Tree & TypeScript Generator', 'SQL Beautifier for Postgres, MySQL & ANSI', 'JWT Claims & Expiration Signature Debugger', 'cURL to Fetch / Axios / Python Converter'].map((item, i) => (
+                  <div key={i} className="flex items-center gap-1.5 text-[11px] text-slate-300">
+                    <Check className="w-3 h-3 text-emerald-400 shrink-0" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-2.5 pt-2 border-t border-slate-800 text-[10px] text-blue-400 font-bold text-right">
+                Click to open tools →
+              </div>
+              <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-950 border-r border-b border-slate-700 rotate-45" />
+            </div>
+
             <div className="w-10 h-10 rounded-xl bg-purple-950 text-purple-400 border border-purple-800 flex items-center justify-center">
               <Wrench className="w-5 h-5" />
             </div>
@@ -351,8 +554,35 @@ export const HomePage: React.FC<HomePageProps> = ({
 
           <div
             onClick={() => setActiveTab('request-hub')}
-            className="p-5 bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-2xl cursor-pointer transition group space-y-2"
+            className="relative p-5 bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-2xl cursor-pointer transition group space-y-2 hover:shadow-xl hover:shadow-indigo-500/10"
           >
+            {/* Tooltip */}
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-80 max-w-[90vw] bg-slate-950/95 backdrop-blur-xl border border-slate-700 rounded-2xl p-4 shadow-2xl z-40 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 transform translate-y-1 group-hover:translate-y-0 text-left">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                <span className="font-bold text-xs text-white flex items-center gap-1.5">
+                  <MessageSquarePlus className="w-3.5 h-3.5 text-indigo-400" /> Community Request Hub
+                </span>
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800">
+                  Open Platform
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 mt-2 leading-relaxed">
+                Submit feature proposals, vote on community requests, and earn +2 Contribution Points when built.
+              </p>
+              <div className="mt-2.5 pt-2 border-t border-slate-800 space-y-1">
+                {['Submit New Tool & Feature Ideas', 'Upvote Community Proposals', 'Track In-Progress Development Queue', 'Earn Contribution Points & Badges', 'Global Platform Leaderboard'].map((item, i) => (
+                  <div key={i} className="flex items-center gap-1.5 text-[11px] text-slate-300">
+                    <Check className="w-3 h-3 text-emerald-400 shrink-0" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-2.5 pt-2 border-t border-slate-800 text-[10px] text-blue-400 font-bold text-right">
+                Click to open Request Hub →
+              </div>
+              <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-950 border-r border-b border-slate-700 rotate-45" />
+            </div>
+
             <div className="w-10 h-10 rounded-xl bg-indigo-950 text-indigo-400 border border-indigo-800 flex items-center justify-center">
               <MessageSquarePlus className="w-5 h-5" />
             </div>

@@ -12,7 +12,16 @@ export interface ThemeConfig {
 export type RequestCategory = 'math' | 'productivity' | 'text' | 'conversion' | 'developer' | 'utility' | 'other';
 export type RequestStatus = 'pending' | 'in_progress' | 'completed' | 'rejected';
 
-export const ADMIN_EMAIL = 'smashyblocks7@gmail.com';
+export const ADMIN_EMAILS = [
+  'rainforest.cck3@gmail.com',
+  'smashyblocks7@gmail.com'
+];
+export const ADMIN_EMAIL = 'rainforest.cck3@gmail.com';
+
+export const isAdminEmail = (email?: string | null): boolean => {
+  if (!email) return false;
+  return ADMIN_EMAILS.some((e) => e.toLowerCase() === email.toLowerCase());
+};
 
 export interface ToolRequest {
   id: string;

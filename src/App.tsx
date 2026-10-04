@@ -66,7 +66,7 @@ import { ToolRequestHub } from './components/ToolRequestHub';
 import { AdminPortal } from './components/AdminPortal';
 import { Leaderboard } from './components/Leaderboard';
 import { TieredBadges } from './components/TieredBadges';
-import { ToolRequest, UserProfile, RequestStatus, FirebaseCustomConfig, ADMIN_EMAIL, ToolUsageStat, ToolIssue, ThemeId } from './types';
+import { ToolRequest, UserProfile, RequestStatus, FirebaseCustomConfig, ADMIN_EMAIL, isAdminEmail, ToolUsageStat, ToolIssue, ThemeId } from './types';
 import { APP_VERSION } from '../version.js';
 import {
   initFirebase,
@@ -457,7 +457,7 @@ export default function App() {
       const unsubAuth = onAuthStateChanged(auth, async (user) => {
         if (user) {
           setIsGuest(user.isAnonymous);
-          const isOwnerAdmin = user.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+          const isOwnerAdmin = user.email && isAdminEmail(user.email);
           if (isOwnerAdmin) {
             setIsAdminMode(true);
           }
