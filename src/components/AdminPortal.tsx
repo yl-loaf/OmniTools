@@ -95,9 +95,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     });
   }, [requests]);
 
-  // Filtered requests
+  // Filtered requests (Sorted oldest to newest by default)
   const filteredRequests = useMemo(() => {
-    return requests.filter((r) => {
+    const list = requests.filter((r) => {
       const matchSearch =
         r.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         r.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -105,6 +105,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       const matchStatus = statusFilter === 'all' || r.status === statusFilter;
       return matchSearch && matchStatus;
     });
+
+    return list.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
   }, [requests, searchQuery, statusFilter]);
 
   // Filtered issues
@@ -240,7 +242,7 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
             <div className="flex items-center gap-2">
               <h2 className="text-xl font-black text-white">Executive Administrator Portal</h2>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold">
-                Verified Architect
+                Sorted: Oldest to Newest
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-1">
