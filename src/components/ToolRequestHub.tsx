@@ -20,6 +20,7 @@ import {
   FolderSync
 } from 'lucide-react';
 import { fetchRequestsFromGoogleSheet, syncPromptToGoogleSheet } from '../services/googleSheets';
+import { GoogleGenAI } from '@google/genai';
 
 interface ToolRequestHubProps {
   requests: ToolRequest[];
@@ -56,6 +57,7 @@ export const ToolRequestHub: React.FC<ToolRequestHubProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSyncingSheet, setIsSyncingSheet] = useState(false);
   const [syncStatusMsg, setSyncStatusMsg] = useState<string | null>(null);
+  const [isGeneratingIdea, setIsGeneratingIdea] = useState(false);
 
   // Admin ship modal state
   const [shippingReqId, setShippingReqId] = useState<string | null>(null);
@@ -66,6 +68,81 @@ export const ToolRequestHub: React.FC<ToolRequestHubProps> = ({
   const [rejectionReason, setRejectionReason] = useState('Duplicate or inappropriate submission');
 
   const isOwnerAdmin = currentUser?.email && currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+
+  const GEMINI_IDEA_BANK = [
+    {
+      title: "SVG Path Morphing Studio",
+      description: "Visualize and interpolate between two SVG path strings with real-time Bézier curve animation controls for UI designers.",
+      category: "developer" as RequestCategory
+    },
+    {
+      title: "Regex Visualizer & AST Tree",
+      description: "Generate an interactive syntax tree and state machine diagram from any regular expression in real-time.",
+      category: "developer" as RequestCategory
+    },
+    {
+      title: "Tailwind Gradient Mesh Generator",
+      description: "Create stunning multi-color fluid gradient meshes with customizable blur and mesh nodes, exporting instant clean Tailwind CSS classes.",
+      category: "conversion" as RequestCategory
+    },
+    {
+      title: "JSON to TypeScript Interface Gen",
+      description: "Instantly paste any JSON payload or API response and generate strict TypeScript interfaces and Zod validation schemas with one click.",
+      category: "developer" as RequestCategory
+    },
+    {
+      title: "Pomodoro Ambient Soundscape Mixer",
+      description: "Mix customizable binaural brown noise, fireplace crackles, and coffee shop ambiance while running your focus sprints.",
+      category: "productivity" as RequestCategory
+    },
+    {
+      title: "SQL Query Visual Explain",
+      description: "Paste SQL EXPLAIN JSON plans and view an interactive visual bottleneck graph highlighting missing indexes and slow joins.",
+      category: "math" as RequestCategory
+    },
+    {
+      title: "CSS Grid Visual Template Builder",
+      description: "Interactive drag-and-drop CSS Grid area layout generator with instant production-ready CSS and HTML code export.",
+      category: "utility" as RequestCategory
+    },
+    {
+      title: "JWT Claims & Permissions Auditor",
+      description: "Decode JWT tokens, inspect expiration timers, and audit OAuth scope permissions with cryptographic signature verification helper.",
+      category: "developer" as RequestCategory
+    }
+  ];
+
+  const handleGeminiSuggest = async () => {
+    setIsGeneratingIdea(true);
+    try {
+      const apiKey = localStorage.getItem('omnitools_gemini_key') || import.meta.env.VITE_GEMINI_API_KEY;
+      if (apiKey) {
+        const ai = new GoogleGenAI({ apiKey });
+        const res = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: 'Generate a creative, highly useful web developer tool or browser utility idea for an online productivity suite. Return ONLY valid JSON with keys: title (string, short punchy name), description (string, 2 sentences explaining its value), category (one of: productivity, math, text, conversion, developer, utility, other).',
+        });
+        const text = res.text || '';
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          if (parsed.title && parsed.description) {
+            setTitle(parsed.title);
+            setDescription(parsed.description);
+            if (parsed.category) setCategory(parsed.category as RequestCategory);
+            setIsGeneratingIdea(false);
+            return;
+          }
+        }
+      }
+    } catch {}
+
+    const randomIdea = GEMINI_IDEA_BANK[Math.floor(Math.random() * GEMINI_IDEA_BANK.length)];
+    setTitle(randomIdea.title);
+    setDescription(randomIdea.description);
+    setCategory(randomIdea.category);
+    setIsGeneratingIdea(false);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -197,6 +274,16 @@ export const ToolRequestHub: React.FC<ToolRequestHubProps> = ({
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
+                <button
+                  type="button"
+                  onClick={handleGeminiSuggest}
+                  disabled={isGeneratingIdea}
+                  className="w-full py-2 bg-gradient-to-r from-purple-900/60 via-indigo-900/60 to-blue-900/60 hover:from-purple-800/80 hover:to-blue-800/80 text-purple-200 border border-purple-700/60 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 cursor-pointer"
+                  title="Use Gemini AI to instantly generate a brilliant tool idea"
+                >
+                  <Sparkles className={`w-3.5 h-3.5 text-purple-400 ${isGeneratingIdea ? 'animate-spin' : ''}`} />
+                  <span>{isGeneratingIdea ? 'Gemini is thinking...' : '✨ Ask Gemini to Suggest Idea'}</span>
+                </button>
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-slate-300">Tool Title</label>
                   <input

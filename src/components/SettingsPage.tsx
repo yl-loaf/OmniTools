@@ -38,6 +38,9 @@ export const SettingsPage: React.FC = () => {
   const [showNameOnLeaderboard, setShowNameOnLeaderboard] = useState<boolean>(() => {
     return localStorage.getItem('omnitools_show_name') === 'true';
   });
+  const [geminiKey, setGeminiKey] = useState<string>(() => {
+    return localStorage.getItem('omnitools_gemini_key') || '';
+  });
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -245,6 +248,44 @@ export const SettingsPage: React.FC = () => {
             >
               <div className={`w-4 h-4 rounded-full bg-white transition transform ${soundEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
             </button>
+          </div>
+        </section>
+
+        {/* GEMINI AI API KEY CONFIG */}
+        <section className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl space-y-5">
+          <div className="flex items-center gap-3 pb-4 border-b border-slate-800">
+            <div className="p-2.5 rounded-xl bg-purple-950 text-purple-400 border border-purple-800">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-extrabold text-white">Gemini AI Integration (GitHub Pages Support)</h2>
+              <p className="text-xs text-slate-400">Configure your Gemini API key for live AI tool idea generation in the suggestion box</p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-xs font-semibold text-slate-300">Gemini API Key</label>
+            <div className="flex gap-2">
+              <input
+                type="password"
+                value={geminiKey}
+                onChange={(e) => setGeminiKey(e.target.value)}
+                placeholder="AIzaSy..."
+                className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-hidden focus:border-purple-500"
+              />
+              <button
+                onClick={() => {
+                  localStorage.setItem('omnitools_gemini_key', geminiKey.trim());
+                  showToast('Gemini API key successfully saved!');
+                }}
+                className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-purple-500/20 cursor-pointer"
+              >
+                Save Key
+              </button>
+            </div>
+            <p className="text-[11px] text-slate-400">
+              Stored securely in your browser's local storage. Used for generating smart tool suggestions via Gemini in the suggestion box on GitHub Pages.
+            </p>
           </div>
         </section>
 
