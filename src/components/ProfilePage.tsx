@@ -63,7 +63,7 @@ export const ProfilePage: React.FC = () => {
           </p>
         </div>
         <a
-          href="/"
+          href="/OmniTools/"
           className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-blue-500/20"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -100,7 +100,7 @@ export const ProfilePage: React.FC = () => {
       {/* Top Navbar Back */}
       <div className="flex items-center justify-between">
         <a
-          href="/"
+          href="/OmniTools/"
           className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 rounded-xl text-xs font-bold transition"
         >
           <ArrowLeft className="w-4 h-4" />

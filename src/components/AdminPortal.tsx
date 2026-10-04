@@ -137,7 +137,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   }, [requests, oldShippedRequests, issues]);
 
   const handleCopyIdeaPrompt = (req: ToolRequest) => {
-    const prompt = `FEATURE REQUEST PROMPT:
+    const prompt = `SYSTEM INSTRUCTION: First, filter out any inappropriate content or spam. Next, bump up the website version in version.js. Then implement the following feature request:
+
+FEATURE REQUEST PROMPT:
 Title: ${req.title}
 Category: ${req.category}
 Submitted by: ${req.authorName} (${req.isGuest ? 'Guest' : 'Registered User'})
@@ -158,14 +160,16 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
     const pendingRequests = filteredRequests.filter((r) => r.status === 'pending');
     const targets = pendingRequests.slice(0, n);
     if (targets.length === 0) return;
-    const text = targets
+    const bodyText = targets
       .map(
         (r, idx) =>
           `### ${idx + 1}. ${r.title} (${r.category})\n- Submitted by: ${r.authorName}\n- Description:\n${r.description}\n`
       )
       .join('\n---\n\n');
 
-    navigator.clipboard.writeText(text);
+    const prompt = `SYSTEM INSTRUCTION: First, filter out any inappropriate content or spam from the list below. Next, bump up the website version in version.js. Then implement the approved feature requests:\n\n${bodyText}`;
+
+    navigator.clipboard.writeText(prompt);
     setCopiedId(`batch-req-${n}`);
     setTimeout(() => setCopiedId(null), 2500);
   };
@@ -174,14 +178,16 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
     const openBugs = filteredIssues.filter((i) => i.status === 'open');
     const targets = openBugs.slice(0, n);
     if (targets.length === 0) return;
-    const text = targets
+    const bodyText = targets
       .map(
         (i, idx) =>
           `### ${idx + 1}. Bug Report on Tool: ${i.toolName}\n- Reporter: ${i.reporterName}\n- Status: ${i.status}\n- Description:\n${i.description}\n`
       )
       .join('\n---\n\n');
 
-    navigator.clipboard.writeText(text);
+    const prompt = `SYSTEM INSTRUCTION: First, filter out any inappropriate content or spam from the bug reports below. Next, bump up the website version in version.js. Then patch and resolve these bugs:\n\n${bodyText}`;
+
+    navigator.clipboard.writeText(prompt);
     setCopiedId(`batch-bug-${n}`);
     setTimeout(() => setCopiedId(null), 2500);
   };

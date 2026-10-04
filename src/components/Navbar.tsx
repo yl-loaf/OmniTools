@@ -338,7 +338,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {currentUser ? (
               <div className="flex items-center gap-2">
                 <a
-                  href="/profile.html"
+                  href="/OmniTools/profile.html"
                   title="View Profile Page & CP Transaction History"
                   className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-800 hover:bg-slate-700 rounded-xl border border-slate-700 text-xs text-slate-200 transition"
                 >
@@ -445,7 +445,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {currentUser && (
               <div className="pt-2">
                 <a
-                  href="/profile.html"
+                  href="/OmniTools/profile.html"
                   className="w-full py-2.5 bg-blue-600/20 border border-blue-500/40 text-blue-300 rounded-xl text-xs font-bold flex items-center justify-center gap-2"
                 >
                   <ExternalLink className="w-4 h-4" />
