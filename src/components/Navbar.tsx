@@ -1,3 +1,8 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { useState, useRef, useEffect } from 'react';
 import { UserProfile, FirebaseCustomConfig, ADMIN_EMAIL } from '../types';
 import { APP_VERSION } from '../../version.js';
@@ -59,8 +64,8 @@ interface NavbarProps {
   firebaseConfig: FirebaseCustomConfig | null;
   onOpenFirebaseModal: () => void;
   onOpenSearch: () => void;
-  favoriteIds?: string[];
-  onToggleFavorite?: (toolId: string) => void;
+  favoriteIds: string[];
+  onToggleFavorite: (id: string) => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -74,59 +79,52 @@ export const Navbar: React.FC<NavbarProps> = ({
   firebaseConfig,
   onOpenFirebaseModal,
   onOpenSearch,
-  favoriteIds = [],
-  onToggleFavorite = () => {},
+  favoriteIds,
+  onToggleFavorite,
 }) => {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [toolsDropdownOpen, setToolsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Close dropdown on outside click
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
+    const handleOutsideClick = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setToolsDropdownOpen(false);
+        setDropdownOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
   const toolCategories = [
     {
-      name: 'Daily Life & 30+ Features',
+      name: 'Daily Life & Suites (30+)',
       items: [
-        { id: 'health-suite', label: 'Health, Fitness & Tips', icon: Heart, desc: 'Tip splitter, BMI, TDEE, water & sleep' },
-        { id: 'finance-suite', label: 'Finance, Recipe & Savings', icon: DollarSign, desc: 'Recipe scaler, fuel cost & compound growth' },
-        { id: 'productivity-suite', label: 'Productivity & Planning', icon: Clock, desc: 'Timezone planner, ETA & daily todos' },
-        { id: 'home-suite', label: 'Home, Travel & Packing', icon: CloudSun, desc: 'Parking timer, box volume & weather index' },
-        { id: 'quick-utils-suite', label: 'GPA, Sales & Quotes', icon: Award, desc: 'GPA, stacked discounts, egg timer & quotes' },
+        { id: 'health-suite', label: 'Health, Fitness & Fasting', icon: Heart, desc: 'BMI, water tracker, calories & intermittent fasting timer' },
+        { id: 'finance-suite', label: 'Finance, Budget & Life', icon: DollarSign, desc: 'Salary tax estimator, tip calculator, age & GPA calculators' },
+        { id: 'productivity-suite', label: 'Productivity & Focus', icon: Clock, desc: 'Pomodoro timer, meeting planner, word counter & stopwatch' },
+        { id: 'home-suite', label: 'Home, Travel & Utility', icon: CloudSun, desc: 'Weather outfit planner, packing checklist & unit converter' },
+        { id: 'quick-utils-suite', label: 'Quick Utilities & Conversions', icon: Globe, desc: 'Morse code translator, case converter, random picker & dice' },
       ],
     },
     {
-      name: 'Developer & Code Lab',
+      name: 'Developer & Code Studio',
       items: [
-        { id: 'markdown', label: 'Markdown Studio', icon: FileText, desc: 'GFM preview, table editor & HTML export' },
-        { id: 'json-studio', label: 'JSON & TypeScript Studio', icon: Braces, desc: 'Format, validate, tree & TS types' },
-        { id: 'sql-formatter', label: 'SQL Query Beautifier', icon: Database, desc: 'Format ANSI, MySQL & Postgres queries' },
-        { id: 'diff-checker', label: 'Diff Text Comparator', icon: GitCompare, desc: 'Side-by-side line & char diffs' },
-        { id: 'regex-tester', label: 'Regex Lab', icon: Code, desc: 'Pattern tester, replace & regex presets' },
-        { id: 'jwt-debugger', label: 'JWT Debugger', icon: ShieldCheck, desc: 'Decode headers, claims & expiry timestamps' },
-        { id: 'curl-builder', label: 'cURL & API Generator', icon: Terminal, desc: 'cURL to Fetch, Python & Axios code' },
-        { id: 'cron-gen', label: 'Cron Scheduler', icon: Clock, desc: 'Build 5-field cron with plain English' },
-        { id: 'chmod-calc', label: 'Linux chmod Calc', icon: Terminal, desc: 'Octal 755/644/777 & symbolic permissions' },
-        { id: 'keycode-tester', label: 'KeyCode Event Tester', icon: Keyboard, desc: 'Inspect JS key, code, which & modifiers' },
-      ],
-    },
-    {
-      name: 'Design & Media Utilities',
-      items: [
-        { id: 'color-studio', label: 'Color & Contrast Studio', icon: Palette, desc: 'Harmonies, WCAG contrast & gradients' },
-        { id: 'css-generator', label: 'CSS Glass & Shadows', icon: Layers, desc: 'Glassmorphism, multi-shadows & clip paths' },
-        { id: 'dimension-calc', label: 'Aspect Ratio & DPI', icon: Maximize, desc: 'Resolution solver, print DPI & video size' },
-        { id: 'meta-gen', label: 'SEO & Meta Card Studio', icon: Globe, desc: 'OpenGraph, Twitter card & Google preview' },
-        { id: 'svg-optimizer', label: 'SVG Vector Cleaner', icon: Image, desc: 'Minify SVG paths & generate Data URIs' },
-        { id: 'qr-generator', label: 'QR Code Generator', icon: QrCode, desc: 'Scannable URLs, Wi-Fi & vCards' },
-        { id: 'barcode-gen', label: 'Barcode Studio', icon: QrCode, desc: 'Code 128 scannable vector barcodes' },
+        { id: 'markdown', label: 'Markdown Live Editor', icon: FileText, desc: 'GitHub-flavored preview, word count & export' },
+        { id: 'json-studio', label: 'JSON Formatter & Tree', icon: Braces, desc: 'Linting, tree visualizer, path finder & minifier' },
+        { id: 'color-studio', label: 'Tailwind & HEX Color Studio', icon: Palette, desc: 'Shades, contrast checker, WCAG & CSS variables' },
+        { id: 'regex-tester', label: 'Regex Tester & Matcher', icon: Code, desc: 'Live regex testing, flags & match highlighter' },
+        { id: 'css-generator', label: 'CSS Flexbox & Grid Gen', icon: Wrench, desc: 'Interactive flexbox and CSS generator' },
+        { id: 'sql-formatter', label: 'SQL Formatter & Linter', icon: Database, desc: 'Beautify SQL queries for PostgreSQL, MySQL & SQLite' },
+        { id: 'diff-checker', label: 'Text & Code Diff Checker', icon: GitCompare, desc: 'Side-by-side diff comparison with line highlights' },
+        { id: 'meta-gen', label: 'SEO Meta Tag Generator', icon: Globe, desc: 'OpenGraph, Twitter cards, and structured JSON-LD' },
+        { id: 'jwt-debugger', label: 'JWT Token Debugger', icon: ShieldCheck, desc: 'Decode header, payload, and verify signatures' },
+        { id: 'cron-gen', label: 'Cron Expression Generator', icon: Terminal, desc: 'Visual cron schedule builder & human descriptions' },
+        { id: 'svg-optimizer', label: 'SVG Optimizer & Viewer', icon: Image, desc: 'Clean, minify, and preview vector graphics' },
+        { id: 'barcode-gen', label: 'Barcode & QR Generator', icon: QrCode, desc: 'UPC, Code 128, and custom QR codes with download' },
+        { id: 'chmod-calc', label: 'Linux Chmod Calculator', icon: Lock, desc: 'File permission symbolic & numeric octal calculator' },
+        { id: 'curl-builder', label: 'cURL to Fetch/Axios Builder', icon: Terminal, desc: 'Convert HTTP cURL commands to JavaScript fetch' },
       ],
     },
     {
@@ -158,225 +156,165 @@ export const Navbar: React.FC<NavbarProps> = ({
   const activeTool = allTools.find((t) => t.id === activeTab);
 
   return (
-    <header className="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800">
+    <header className="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 shadow-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Brand Logo */}
-          <div className="flex items-center gap-3">
+          {/* Logo & Brand */}
+          <div className="flex items-center gap-6">
             <button
-              onClick={() => setActiveTab('calculator')}
-              className="flex items-center gap-2.5 text-left group"
+              onClick={() => setActiveTab('home')}
+              className="flex items-center gap-2.5 group text-left focus:outline-hidden"
             >
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/25 group-hover:scale-105 transition">
                 <Wrench className="w-5 h-5 text-white" />
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-white text-base tracking-tight group-hover:text-blue-400 transition">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-black text-base tracking-tight text-white group-hover:text-blue-400 transition">
                     OmniTools
                   </span>
-                  <span className="text-[11px] font-mono px-1.5 py-0.5 rounded-sm bg-blue-950 text-blue-300 border border-blue-800/60 font-semibold">
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-blue-950 text-blue-300 border border-blue-800">
                     v{APP_VERSION}
                   </span>
                 </div>
-                <p className="text-[10px] text-slate-400 font-medium hidden sm:block">
-                  55+ Daily Life & Dev Utilities
-                </p>
+                <p className="text-[10px] text-slate-400 font-medium">Professional 55+ Tool Suite</p>
               </div>
             </button>
 
-            {/* Link to static tools.html catalog */}
-            <a
-              href="./tools.html"
-              title="View static tools directory"
-              className="hidden 2xl:flex items-center gap-1 text-[11px] text-slate-400 hover:text-slate-200 bg-slate-800/60 px-2 py-1 rounded-md border border-slate-700/60 transition"
-            >
-              <span>tools.html</span>
-              <ExternalLink className="w-3 h-3 text-slate-500" />
-            </a>
-          </div>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-2">
-            {/* Home Tab */}
-            <button
-              onClick={() => setActiveTab('home')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition border ${
-                activeTab === 'home'
-                  ? 'bg-blue-600 text-white border-blue-500 shadow-xs shadow-blue-500/30'
-                  : 'text-slate-300 bg-slate-900 border-slate-800 hover:bg-slate-800 hover:text-white'
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-              <span>Home</span>
-            </button>
-
-            {/* All Tools Mega Dropdown */}
-            <div className="relative" ref={dropdownRef}>
+            {/* Desktop Navigation Links */}
+            <nav className="hidden md:flex items-center gap-1">
               <button
-                onClick={() => setToolsDropdownOpen(!toolsDropdownOpen)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold transition border ${
-                  activeTool
-                    ? 'bg-blue-600 text-white border-blue-500 shadow-xs shadow-blue-500/30'
-                    : 'bg-slate-800/90 text-slate-200 border-slate-700 hover:bg-slate-700'
+                onClick={() => setActiveTab('home')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                  activeTab === 'home'
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800'
                 }`}
               >
-                {activeTool ? (
-                  <>
-                    <activeTool.icon className="w-4 h-4" />
-                    <span>{activeTool.label}</span>
-                  </>
-                ) : (
-                  <>
-                    <Wrench className="w-4 h-4 text-blue-400" />
-                    <span>All 55+ Tools</span>
-                  </>
-                )}
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${toolsDropdownOpen ? 'rotate-180' : ''}`} />
+                Dashboard
               </button>
 
-              {/* Mega Dropdown Menu */}
-              {toolsDropdownOpen && (
-                <div className="absolute left-0 mt-2 w-[850px] bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-5 z-50 grid grid-cols-2 gap-5 animate-in fade-in zoom-in-95 duration-150 max-h-[75vh] overflow-y-auto">
-                  {toolCategories.map((cat, idx) => (
-                    <div key={idx} className="space-y-2">
-                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 border-b border-slate-800 pb-1">
-                        {cat.name}
-                      </div>
-                      <div className="space-y-1">
-                        {cat.items.map((item) => {
-                          const Icon = item.icon;
-                          const isCurrent = activeTab === item.id;
-                          const isFav = favoriteIds.includes(item.id);
+              {/* Tools Dropdown Menu */}
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                    allTools.some((t) => t.id === activeTab)
+                      ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                  }`}
+                >
+                  <span>{activeTool ? activeTool.label : 'All Utilities'}</span>
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
 
-                          return (
-                            <div
-                              key={item.id}
-                              className={`w-full flex items-center justify-between p-2 rounded-xl transition group ${
-                                isCurrent
-                                  ? 'bg-blue-600 text-white'
-                                  : 'hover:bg-slate-800 text-slate-300 hover:text-white'
-                              }`}
-                            >
-                              <button
-                                onClick={() => {
-                                  setActiveTab(item.id);
-                                  setToolsDropdownOpen(false);
-                                }}
-                                className="flex items-start gap-2.5 text-left flex-1 min-w-0"
-                              >
-                                <div className={`p-1.5 rounded-lg shrink-0 ${
-                                  isCurrent ? 'bg-blue-700 text-white' : 'bg-slate-800 group-hover:bg-slate-700 text-blue-400'
-                                }`}>
-                                  <Icon className="w-4 h-4" />
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                  <div className="text-xs font-semibold truncate">
-                                    {item.label}
-                                  </div>
-                                  <div className={`text-[10px] truncate ${isCurrent ? 'text-blue-100' : 'text-slate-500 group-hover:text-slate-400'}`}>
-                                    {item.desc}
-                                  </div>
-                                </div>
-                              </button>
+                {dropdownOpen && (
+                  <div className="absolute left-0 mt-2 w-80 sm:w-96 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-3 z-50 max-h-[75vh] overflow-y-auto space-y-4 animate-in fade-in">
+                    {toolCategories.map((cat, idx) => (
+                      <div key={idx} className="space-y-1.5">
+                        <div className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider px-2">
+                          {cat.name}
+                        </div>
+                        <div className="grid grid-cols-1 gap-1">
+                          {cat.items.map((tool) => {
+                            const IconComp = tool.icon;
+                            const isFav = favoriteIds.includes(tool.id);
 
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onToggleFavorite(item.id);
-                                }}
-                                className={`p-1.5 rounded-lg transition shrink-0 ${
-                                  isFav
-                                    ? 'text-amber-400 hover:text-slate-400'
-                                    : 'text-slate-600 hover:text-amber-400 opacity-0 group-hover:opacity-100'
+                            return (
+                              <div
+                                key={tool.id}
+                                className={`flex items-center justify-between p-2 rounded-xl text-xs transition group ${
+                                  activeTab === tool.id
+                                    ? 'bg-blue-600 text-white font-bold'
+                                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                                 }`}
-                                title={isFav ? 'Remove from favorites' : 'Star tool'}
                               >
-                                <Star className={`w-3.5 h-3.5 ${isFav ? 'fill-amber-400 text-amber-400' : ''}`} />
-                              </button>
-                            </div>
-                          );
-                        })}
+                                <button
+                                  onClick={() => {
+                                    setActiveTab(tool.id);
+                                    setDropdownOpen(false);
+                                  }}
+                                  className="flex items-center gap-2.5 flex-1 text-left"
+                                >
+                                  <IconComp className={`w-4 h-4 shrink-0 ${activeTab === tool.id ? 'text-white' : 'text-slate-400 group-hover:text-blue-400'}`} />
+                                  <div className="truncate">
+                                    <div className="font-semibold">{tool.label}</div>
+                                    <div className={`text-[10px] truncate ${activeTab === tool.id ? 'text-blue-100' : 'text-slate-500'}`}>
+                                      {tool.desc}
+                                    </div>
+                                  </div>
+                                </button>
+
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onToggleFavorite(tool.id);
+                                  }}
+                                  title={isFav ? 'Remove from favorites' : 'Add to favorites'}
+                                  className={`p-1.5 rounded-lg transition ${
+                                    isFav ? 'text-amber-400 hover:bg-amber-950/40' : 'text-slate-600 hover:text-slate-300 hover:bg-slate-700'
+                                  }`}
+                                >
+                                  <Star className={`w-3.5 h-3.5 ${isFav ? 'fill-amber-400' : ''}`} />
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-            {/* My Favorites Tab */}
-            <button
-              onClick={() => setActiveTab('favorites')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition border ${
-                activeTab === 'favorites'
-                  ? 'bg-amber-500 text-slate-950 border-amber-400 font-bold shadow-xs shadow-amber-500/30'
-                  : favoriteIds.length > 0
-                  ? 'text-amber-300 bg-amber-950/40 border-amber-800/60 hover:bg-amber-900/60 hover:text-white'
-                  : 'text-slate-400 bg-slate-900 border-slate-800 hover:bg-slate-800 hover:text-white'
-              }`}
-            >
-              <Star className={`w-3.5 h-3.5 ${favoriteIds.length > 0 ? 'fill-amber-400 text-amber-400' : 'text-slate-400'}`} />
-              <span>Favorites</span>
-              {favoriteIds.length > 0 && (
-                <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
-                  activeTab === 'favorites' ? 'bg-slate-950 text-amber-300' : 'bg-amber-900 text-amber-200'
-                }`}>
-                  {favoriteIds.length}
-                </span>
-              )}
-            </button>
+              <button
+                onClick={() => setActiveTab('request-hub')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                  activeTab === 'request-hub'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                }`}
+              >
+                <MessageSquarePlus className="w-3.5 h-3.5 text-purple-400" />
+                <span>Feature Queue</span>
+              </button>
 
-            {/* Quick Primary Tab Links */}
-            <button
-              onClick={() => setActiveTab('request-hub')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition border ${
-                activeTab === 'request-hub'
-                  ? 'bg-purple-600 text-white border-purple-500 shadow-xs shadow-purple-500/30'
-                  : 'text-purple-300 bg-purple-950/40 border-purple-800/60 hover:bg-purple-900/60 hover:text-white'
-              }`}
-            >
-              <MessageSquarePlus className="w-4 h-4 text-purple-400" />
-              <span>Request Hub</span>
-            </button>
+              <button
+                onClick={() => setActiveTab('friends-hub')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                  activeTab === 'friends-hub'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                }`}
+              >
+                <Users className="w-3.5 h-3.5 text-blue-400" />
+                <span>Friends</span>
+              </button>
 
-            <button
-              onClick={() => setActiveTab('leaderboard')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition border ${
-                activeTab === 'leaderboard'
-                  ? 'bg-amber-600 text-white border-amber-500 shadow-xs shadow-amber-500/30'
-                  : 'text-amber-300 bg-amber-950/40 border-amber-800/60 hover:bg-amber-900/60 hover:text-white'
-              }`}
-            >
-              <Trophy className="w-4 h-4 text-amber-400" />
-              <span>Leaderboard</span>
-            </button>
+              <button
+                onClick={() => setActiveTab('leaderboard')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                  activeTab === 'leaderboard'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                }`}
+              >
+                <Trophy className="w-3.5 h-3.5 text-amber-400" />
+                <span>Leaderboard</span>
+              </button>
+            </nav>
+          </div>
 
-            {/* Admin Portal Tab (Exclusive for smashyblocks7@gmail.com) */}
-            <button
-              onClick={() => setActiveTab('admin')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition border ${
-                activeTab === 'admin'
-                  ? 'bg-rose-600 text-white border-rose-500 shadow-xs shadow-rose-500/30'
-                  : currentUser?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()
-                  ? 'text-rose-300 bg-rose-950/60 border-rose-700 hover:bg-rose-900 hover:text-white animate-pulse'
-                  : 'text-slate-400 bg-slate-900 border-slate-800 hover:bg-slate-800 hover:text-slate-200'
-              }`}
-            >
-              <ShieldCheck className="w-4 h-4 text-rose-400" />
-              <span>Admin Portal</span>
-            </button>
-          </nav>
-
-          {/* Quick Search Button + Points + Auth */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          {/* Right Action Bar */}
+          <div className="flex items-center gap-3">
+            {/* Quick Search (Ctrl+K) */}
             <button
               onClick={onOpenSearch}
-              title="Quick Search 55+ Tools (Ctrl+K)"
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-medium border border-slate-700 transition shadow-xs"
+              className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs text-slate-400 hover:text-white transition shadow-xs"
             >
-              <Search className="w-3.5 h-3.5 text-slate-400" />
-              <span className="hidden sm:inline">Search...</span>
-              <kbd className="hidden md:inline px-1.5 py-0.5 bg-slate-900 rounded text-[10px] font-mono text-slate-400 border border-slate-700">
+              <Search className="w-3.5 h-3.5" />
+              <span>Search tools...</span>
+              <kbd className="px-1.5 py-0.5 bg-slate-900 text-slate-400 rounded text-[10px] font-mono border border-slate-700">
                 ⌘K
               </kbd>
             </button>
@@ -399,7 +337,11 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {currentUser ? (
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-800 rounded-xl border border-slate-700 text-xs text-slate-200">
+                <a
+                  href="/profile.html"
+                  title="View Profile Page & CP Transaction History"
+                  className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-800 hover:bg-slate-700 rounded-xl border border-slate-700 text-xs text-slate-200 transition"
+                >
                   <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white uppercase overflow-hidden">
                     {currentUser.photoURL ? (
                       <img src={currentUser.photoURL} alt={currentUser.displayName} className="w-full h-full object-cover" />
@@ -413,7 +355,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   {isGuest && (
                     <span className="text-[10px] bg-slate-700 text-slate-300 px-1 rounded-xs">Guest</span>
                   )}
-                </div>
+                </a>
                 <button
                   onClick={onLogout}
                   title="Sign out"
@@ -459,98 +401,58 @@ export const Navbar: React.FC<NavbarProps> = ({
                   setActiveTab('home');
                   setMobileMenuOpen(false);
                 }}
-                className="p-2 bg-blue-950/60 border border-blue-800/60 text-blue-200 rounded-xl text-[10px] font-bold text-center flex flex-col items-center gap-1"
+                className={`p-2 rounded-xl text-xs font-bold text-center ${activeTab === 'home' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}`}
               >
-                <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-                <span>Home</span>
+                Home
               </button>
               <button
                 onClick={() => {
                   setActiveTab('favorites');
                   setMobileMenuOpen(false);
                 }}
-                className="p-2 bg-amber-950/60 border border-amber-800/60 text-amber-200 rounded-xl text-[10px] font-bold text-center flex flex-col items-center gap-1"
+                className={`p-2 rounded-xl text-xs font-bold text-center ${activeTab === 'favorites' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}`}
               >
-                <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                <span>Favorites</span>
+                Favorites
               </button>
               <button
                 onClick={() => {
                   setActiveTab('request-hub');
                   setMobileMenuOpen(false);
                 }}
-                className="p-2 bg-purple-950/60 border border-purple-800/60 text-purple-200 rounded-xl text-[10px] font-bold text-center flex flex-col items-center gap-1"
+                className={`p-2 rounded-xl text-xs font-bold text-center ${activeTab === 'request-hub' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}`}
               >
-                <MessageSquarePlus className="w-3.5 h-3.5 text-purple-400" />
-                <span>Requests</span>
+                Requests
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab('friends-hub');
+                  setMobileMenuOpen(false);
+                }}
+                className={`p-2 rounded-xl text-xs font-bold text-center ${activeTab === 'friends-hub' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}`}
+              >
+                Friends
               </button>
               <button
                 onClick={() => {
                   setActiveTab('leaderboard');
                   setMobileMenuOpen(false);
                 }}
-                className="p-2 bg-blue-950/60 border border-blue-800/60 text-blue-200 rounded-xl text-[10px] font-bold text-center flex flex-col items-center gap-1"
+                className={`p-2 rounded-xl text-xs font-bold text-center ${activeTab === 'leaderboard' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}`}
               >
-                <Trophy className="w-3.5 h-3.5 text-blue-400" />
-                <span>Ranks</span>
-              </button>
-              <button
-                onClick={() => {
-                  setActiveTab('admin');
-                  setMobileMenuOpen(false);
-                }}
-                className="p-2 bg-rose-950/60 border border-rose-800/60 text-rose-200 rounded-xl text-[10px] font-bold text-center flex flex-col items-center gap-1"
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-rose-400" />
-                <span>Admin</span>
+                Ranks
               </button>
             </div>
-
-            {toolCategories.map((cat, idx) => (
-              <div key={idx} className="space-y-1">
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1">
-                  {cat.name}
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
-                  {cat.items.map((item) => {
-                    const Icon = item.icon;
-                    const isCurrent = activeTab === item.id;
-                    const isFav = favoriteIds.includes(item.id);
-
-                    return (
-                      <div
-                        key={item.id}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition ${
-                          isCurrent
-                            ? 'bg-blue-600 text-white font-bold'
-                            : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                        }`}
-                      >
-                        <button
-                          onClick={() => {
-                            setActiveTab(item.id);
-                            setMobileMenuOpen(false);
-                          }}
-                          className="flex items-center gap-2 flex-1 min-w-0 text-left"
-                        >
-                          <Icon className="w-4 h-4 text-blue-400 shrink-0" />
-                          <span className="truncate">{item.label}</span>
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onToggleFavorite(item.id);
-                          }}
-                          className="p-1 text-slate-500 hover:text-amber-400"
-                        >
-                          <Star className={`w-3.5 h-3.5 ${isFav ? 'fill-amber-400 text-amber-400' : ''}`} />
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
+            {currentUser && (
+              <div className="pt-2">
+                <a
+                  href="/profile.html"
+                  className="w-full py-2.5 bg-blue-600/20 border border-blue-500/40 text-blue-300 rounded-xl text-xs font-bold flex items-center justify-center gap-2"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  <span>View Dedicated Profile Page & CP Ledger</span>
+                </a>
               </div>
-            ))}
+            )}
           </div>
         )}
       </div>

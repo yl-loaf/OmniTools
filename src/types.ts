@@ -59,6 +59,13 @@ export interface Badge {
   icon: string;
 }
 
+export interface CPTransaction {
+  id: string;
+  amount: number;
+  reason: string;
+  timestamp: string;
+}
+
 export interface UserProfile {
   uid: string;
   displayName: string;
@@ -76,6 +83,7 @@ export interface UserProfile {
   favoriteToolIds?: string[];
   friendIds?: string[];
   friendRequests?: string[];
+  transactions?: CPTransaction[];
   createdAt: string;
   updatedAt: string;
 }
