@@ -52,6 +52,7 @@ import { KeycodeEventTester } from './components/tools/KeycodeEventTester';
 import { CurlBuilder } from './components/tools/CurlBuilder';
 import { SoundBinauralGenerator } from './components/tools/SoundBinauralGenerator';
 import { ThreeDViewer } from './components/tools/ThreeDViewer';
+import { ThreeDConverter } from './components/tools/ThreeDConverter';
 import { FileConverterSuite } from './components/tools/FileConverterSuite';
 
 // Daily Life & 30+ Features Suites
@@ -1227,6 +1228,7 @@ export default function App() {
         {activeTab === 'curl-builder' && <CurlBuilder />}
         {activeTab === 'sound-synth' && <SoundBinauralGenerator />}
         {activeTab === '3d-viewer' && <ThreeDViewer />}
+        {activeTab === '3d-converter' && <ThreeDConverter />}
 
         {/* Universal File Converter Suite & 100+ Permutation Tools */}
         {(activeTab === 'file-converter' || activeTab.startsWith('convert-')) && (

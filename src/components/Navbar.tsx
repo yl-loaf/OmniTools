@@ -130,6 +130,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       name: '3D CAD & Developer Studio',
       items: [
         { id: '3d-viewer', label: '3D File Previewer (STL, OBJ, 3MF)', icon: Box, desc: 'Interactive WebGL 3D mesh inspector with wireframes & stats' },
+        { id: '3d-converter', label: '3D File Converter & Quality Optimizer', icon: Box, desc: 'Convert STL, OBJ, 3MF, PLY & GLTF with quality decimation & unit scaling' },
         { id: 'markdown', label: 'Markdown Live Editor', icon: FileText, desc: 'GitHub-flavored preview, word count & export' },
         { id: 'json-studio', label: 'JSON Formatter & Tree', icon: Braces, desc: 'Linting, tree visualizer, path finder & minifier' },
         { id: 'color-studio', label: 'Tailwind & HEX Color Studio', icon: Palette, desc: 'Shades, contrast checker, WCAG & CSS variables' },

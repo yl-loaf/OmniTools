@@ -80,7 +80,7 @@ const CONVERSION_TOOLS: ToolMeta[] = [
 ];
 
 export const TOOLS_REGISTRY: ToolMeta[] = [
-  // 3D & CAD Previewer
+  // 3D & CAD Previewer & Converter
   {
     id: '3d-viewer',
     name: '3D File Previewer & CAD Inspector (STL, OBJ, 3MF)',
@@ -90,6 +90,16 @@ export const TOOLS_REGISTRY: ToolMeta[] = [
     category: 'Design',
     badge: '3D / CAD',
     keywords: ['3d', 'stl', 'obj', '3mf', 'ply', 'cad', 'mesh', '3d printing', 'wireframe', 'render', 'gcode', 'slicer', 'polygon', 'vertex', 'model viewer', '3d model', 'normals', 'matcap'],
+  },
+  {
+    id: '3d-converter',
+    name: '3D CAD & Mesh Format Converter with Quality Adjuster',
+    shortLabel: '3D File Converter',
+    desc: 'Convert between STL, OBJ, 3MF, PLY, and GLTF with mesh quality adjustment, scale scaling, and vertex decimation',
+    icon: Box,
+    category: 'File Conversion',
+    badge: 'New 3D',
+    keywords: ['3d converter', 'stl to obj', 'obj to stl', '3mf converter', 'ply to stl', 'cad converter', 'mesh quality', 'decimate', '3d printing', 'convert 3d'],
   },
 
   // Daily Life & 30+ Features Suites
