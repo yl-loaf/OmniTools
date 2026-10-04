@@ -51,6 +51,8 @@ import { HttpStatusLookup } from './components/tools/HttpStatusLookup';
 import { KeycodeEventTester } from './components/tools/KeycodeEventTester';
 import { CurlBuilder } from './components/tools/CurlBuilder';
 import { SoundBinauralGenerator } from './components/tools/SoundBinauralGenerator';
+import { ThreeDViewer } from './components/tools/ThreeDViewer';
+import { FileConverterSuite } from './components/tools/FileConverterSuite';
 
 // Daily Life & 30+ Features Suites
 import { HealthFitnessSuite } from './components/tools/daily/HealthFitnessSuite';
@@ -1224,6 +1226,15 @@ export default function App() {
         {activeTab === 'keycode-tester' && <KeycodeEventTester />}
         {activeTab === 'curl-builder' && <CurlBuilder />}
         {activeTab === 'sound-synth' && <SoundBinauralGenerator />}
+        {activeTab === '3d-viewer' && <ThreeDViewer />}
+
+        {/* Universal File Converter Suite & 100+ Permutation Tools */}
+        {(activeTab === 'file-converter' || activeTab.startsWith('convert-')) && (
+          <FileConverterSuite
+            initialToolId={activeTab}
+            onSelectTool={(toolId) => setActiveTab(toolId)}
+          />
+        )}
 
         {/* Executive Admin Portal (Exclusive for smashyblocks7@gmail.com) */}
         {activeTab === 'admin' && (

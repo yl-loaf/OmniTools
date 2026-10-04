@@ -51,7 +51,8 @@ import {
   Heart,
   CloudSun,
   Award,
-  Users
+  Users,
+  Box
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -109,18 +110,25 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const toolCategories = [
     {
-      name: 'Daily Life & Suites (30+)',
+      name: 'File Conversion Suite (100+ Formats)',
       items: [
-        { id: 'health-suite', label: 'Health, Fitness & Fasting', icon: Heart, desc: 'BMI, water tracker, calories & intermittent fasting timer' },
-        { id: 'finance-suite', label: 'Finance, Budget & Life', icon: DollarSign, desc: 'Salary tax estimator, tip calculator, age & GPA calculators' },
-        { id: 'productivity-suite', label: 'Productivity & Focus', icon: Clock, desc: 'Pomodoro timer, meeting planner, word counter & stopwatch' },
-        { id: 'home-suite', label: 'Home, Travel & Utility', icon: CloudSun, desc: 'Weather outfit planner, packing checklist & unit converter' },
-        { id: 'quick-utils-suite', label: 'Quick Utilities & Conversions', icon: Globe, desc: 'Morse code translator, case converter, random picker & dice' },
+        { id: 'file-converter', label: 'Universal File Converter Suite', icon: ArrowRightLeft, desc: 'Convert 100+ formats: PNG, JPG, WEBP, PDF, CSV, JSON, Audio & Video' },
+        { id: 'convert-png-to-jpg', label: 'PNG to JPG Image Converter', icon: ArrowRightLeft, desc: 'Lossless PNG to JPG with background fill & quality' },
+        { id: 'convert-jpg-to-png', label: 'JPG to PNG Image Converter', icon: ArrowRightLeft, desc: 'JPG photos to transparent PNG graphics' },
+        { id: 'convert-png-to-webp', label: 'PNG to WEBP Modern Converter', icon: ArrowRightLeft, desc: 'High-compression WEBP converter for web optimization' },
+        { id: 'convert-pdf-to-docx', label: 'PDF to Word DOCX Converter', icon: ArrowRightLeft, desc: 'Convert PDF documents into editable Word files' },
+        { id: 'convert-docx-to-pdf', label: 'Word DOCX to PDF Exporter', icon: ArrowRightLeft, desc: 'Lock Word formatting into universal PDF format' },
+        { id: 'convert-csv-to-json', label: 'CSV to JSON Array Converter', icon: ArrowRightLeft, desc: 'Parse spreadsheet CSV rows into JSON objects' },
+        { id: 'convert-json-to-csv', label: 'JSON to CSV Spreadsheet Exporter', icon: ArrowRightLeft, desc: 'Flatten JSON arrays into tabular CSV format' },
+        { id: 'convert-json-to-yaml', label: 'JSON to YAML Configuration', icon: ArrowRightLeft, desc: 'Convert JSON to YAML for Docker & Kubernetes' },
+        { id: 'convert-mp3-to-wav', label: 'MP3 to WAV Studio Audio', icon: ArrowRightLeft, desc: 'Decode MP3 into uncompressed PCM WAV audio' },
+        { id: 'convert-image-to-base64', label: 'Image to Base64 Data URI', icon: ArrowRightLeft, desc: 'Generate inline HTML/CSS Base64 string from images' },
       ],
     },
     {
-      name: 'Developer & Code Studio',
+      name: '3D CAD & Developer Studio',
       items: [
+        { id: '3d-viewer', label: '3D File Previewer (STL, OBJ, 3MF)', icon: Box, desc: 'Interactive WebGL 3D mesh inspector with wireframes & stats' },
         { id: 'markdown', label: 'Markdown Live Editor', icon: FileText, desc: 'GitHub-flavored preview, word count & export' },
         { id: 'json-studio', label: 'JSON Formatter & Tree', icon: Braces, desc: 'Linting, tree visualizer, path finder & minifier' },
         { id: 'color-studio', label: 'Tailwind & HEX Color Studio', icon: Palette, desc: 'Shades, contrast checker, WCAG & CSS variables' },
@@ -135,6 +143,16 @@ export const Navbar: React.FC<NavbarProps> = ({
         { id: 'barcode-gen', label: 'Barcode & QR Generator', icon: QrCode, desc: 'UPC, Code 128, and custom QR codes with download' },
         { id: 'chmod-calc', label: 'Linux Chmod Calculator', icon: Lock, desc: 'File permission symbolic & numeric octal calculator' },
         { id: 'curl-builder', label: 'cURL to Fetch/Axios Builder', icon: Terminal, desc: 'Convert HTTP cURL commands to JavaScript fetch' },
+      ],
+    },
+    {
+      name: 'Daily Life & Suites (30+)',
+      items: [
+        { id: 'health-suite', label: 'Health, Fitness & Fasting', icon: Heart, desc: 'BMI, water tracker, calories & intermittent fasting timer' },
+        { id: 'finance-suite', label: 'Finance, Budget & Life', icon: DollarSign, desc: 'Salary tax estimator, tip calculator, age & GPA calculators' },
+        { id: 'productivity-suite', label: 'Productivity & Focus', icon: Clock, desc: 'Pomodoro timer, meeting planner, word counter & stopwatch' },
+        { id: 'home-suite', label: 'Home, Travel & Utility', icon: CloudSun, desc: 'Weather outfit planner, packing checklist & unit converter' },
+        { id: 'quick-utils-suite', label: 'Quick Utilities & Conversions', icon: Globe, desc: 'Morse code translator, case converter, random picker & dice' },
       ],
     },
     {

@@ -1,6 +1,41 @@
 import { ToolRequest } from '../types';
+import { generateConversionShippedProposals } from './fileConversions';
 
-export const COMMUNITY_POPULAR_REQUESTS: ToolRequest[] = [
+const BASE_COMMUNITY_REQUESTS: ToolRequest[] = [
+  {
+    id: 'comm-req-3d-viewer',
+    title: '3D File Previewer & CAD Inspector (STL, OBJ, 3MF)',
+    description: 'Interactive 3D viewport to inspect 3D printing STL models, OBJ meshes, and 3MF files with wireframe toggles, vertex statistics, bounding box dimensions, and snapshot export.',
+    category: 'developer',
+    status: 'completed',
+    completedVersion: 'v1.5.0',
+    authorId: 'comm-user-3d',
+    authorName: 'Kenji Sato',
+    isGuest: false,
+    pointsAwarded: 2,
+    votes: 312,
+    voters: ['u1', 'u2', 'u3', 'u4', 'u5'],
+    createdAt: new Date(Date.now() - 86400000 * 16).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000 * 8).toISOString(),
+    deployedAt: new Date(Date.now() - 86400000 * 8).toISOString(),
+  },
+  {
+    id: 'comm-req-file-converter-suite',
+    title: 'Universal File Converter Suite & Top 100 Permutations',
+    description: 'Universal client-side file converter supporting 100+ format permutations across images, documents, audio, data, spreadsheets, and archives with batch downloads.',
+    category: 'conversion',
+    status: 'completed',
+    completedVersion: 'v1.5.0',
+    authorId: 'comm-user-conv',
+    authorName: 'Elena Rostova',
+    isGuest: false,
+    pointsAwarded: 2,
+    votes: 389,
+    voters: ['u1', 'u2', 'u3', 'u6'],
+    createdAt: new Date(Date.now() - 86400000 * 20).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000 * 6).toISOString(),
+    deployedAt: new Date(Date.now() - 86400000 * 6).toISOString(),
+  },
   {
     id: 'comm-req-1',
     title: 'PostgreSQL to TypeScript Interface Converter',
@@ -334,3 +369,9 @@ export const COMMUNITY_POPULAR_REQUESTS: ToolRequest[] = [
     deployedAt: new Date(Date.now() - 86400000 * 68).toISOString(),
   },
 ];
+
+export const COMMUNITY_POPULAR_REQUESTS: ToolRequest[] = [
+  ...BASE_COMMUNITY_REQUESTS,
+  ...generateConversionShippedProposals(),
+];
+

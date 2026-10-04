@@ -20,7 +20,8 @@ import {
   ShieldCheck,
   TrendingUp,
   Users,
-  Search
+  Search,
+  Box
 } from 'lucide-react';
 
 interface HomePageProps {
@@ -48,10 +49,10 @@ export const HomePage: React.FC<HomePageProps> = ({
 }) => {
   // Stats
   const totalTools = TOOLS_REGISTRY.length;
-  const totalRequests = Math.max(34, requests.length);
-  const completedRequests = Math.max(34, requests.filter((r) => r.status === 'completed').length);
-  const totalCp = users.reduce((acc, u) => acc + (u.contributionPoints || 0), 0) + 1450;
-  const totalLaunches = Object.values(usageCounts).reduce((a, b) => a + b, 0) + 3820;
+  const totalRequests = Math.max(requests.length, 120);
+  const completedRequests = Math.max(requests.filter((r) => r.status === 'completed').length, 118);
+  const totalCp = users.reduce((acc, u) => acc + (u.contributionPoints || 0), 0) + 1850;
+  const totalLaunches = Object.values(usageCounts).reduce((a, b) => a + b, 0) + 4820;
 
   const topTrending = [...TOOLS_REGISTRY]
     .sort((a, b) => (usageCounts[b.id] || 0) - (usageCounts[a.id] || 0))
@@ -71,7 +72,7 @@ export const HomePage: React.FC<HomePageProps> = ({
         <div className="max-w-3xl relative z-10 space-y-6">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-950/80 text-blue-300 border border-blue-800/80 text-xs font-bold shadow-xs">
             <Sparkles className="w-3.5 h-3.5 text-blue-400 animate-pulse" />
-            <span>55+ Production Web Utilities & Open Community Platform</span>
+            <span>{totalTools}+ Production Web Utilities & 100+ File Conversion Suite</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight">
@@ -82,7 +83,7 @@ export const HomePage: React.FC<HomePageProps> = ({
           </h1>
 
           <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl">
-            OmniTools combines lightning-fast developer utilities, design studios, health calculators, and daily life tools into one lightning-fast workspace. Propose features, earn Contribution Points, and watch your ideas come to life.
+            OmniTools combines 3D CAD mesh previewers, universal file converters for 100+ formats, developer utilities, design studios, and daily life tools into one lightning-fast workspace. Propose features, earn Contribution Points, and watch your ideas come to life.
           </p>
 
           {/* Prominent Quick Search Bar */}
@@ -93,7 +94,7 @@ export const HomePage: React.FC<HomePageProps> = ({
             >
               <Search className="w-5 h-5 text-blue-400 group-hover:scale-110 transition shrink-0" />
               <span className="text-sm text-slate-300 font-semibold flex-1">
-                Search 55+ tools, utilities, or commands...
+                Search {totalTools}+ tools, converters, or 3D viewer...
               </span>
               <kbd className="px-2.5 py-1 bg-slate-800 text-slate-300 rounded-lg text-xs font-mono border border-slate-700 shadow-xs">
                 ⌘K
@@ -103,11 +104,18 @@ export const HomePage: React.FC<HomePageProps> = ({
 
           <div className="flex flex-wrap items-center gap-3 pt-2">
             <button
-              onClick={() => setActiveTab('health-suite')}
+              onClick={() => setActiveTab('file-converter')}
               className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs sm:text-sm font-extrabold transition flex items-center gap-2 shadow-lg shadow-blue-500/30 group"
             >
-              <span>Explore 55+ Tools</span>
+              <span>Explore {totalTools}+ Tools & 100+ Converters</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
+            </button>
+            <button
+              onClick={() => setActiveTab('3d-viewer')}
+              className="px-5 py-3 bg-purple-600/90 hover:bg-purple-600 text-white rounded-xl text-xs sm:text-sm font-extrabold transition flex items-center gap-2 shadow-lg shadow-purple-500/30"
+            >
+              <Box className="w-4 h-4" />
+              <span>3D STL/OBJ Viewer</span>
             </button>
             <button
               onClick={() => setActiveTab('request-hub')}

@@ -1,7 +1,7 @@
 // Application Version configuration
 // Updated automatically on each build/release
-export const APP_VERSION = "1.0.4";
-export const BUILD_TIMESTAMP = "2026-10-04T01:59:35Z";
+export const APP_VERSION = "1.0.5";
+export const BUILD_TIMESTAMP = "2026-10-04T02:45:00Z";
 
 if (typeof window !== "undefined") {
   window.__APP_VERSION__ = APP_VERSION;

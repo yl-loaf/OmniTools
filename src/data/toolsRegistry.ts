@@ -29,8 +29,11 @@ import {
   Heart,
   CloudSun,
   Award,
-  Users
+  Users,
+  Box
 } from 'lucide-react';
+import { TOP_CONVERSION_PERMUTATIONS } from './fileConversions';
+import { ThemeConfig, ThemeId } from '../types';
 
 export interface ToolMeta {
   id: string;
@@ -38,11 +41,44 @@ export interface ToolMeta {
   shortLabel: string;
   desc: string;
   icon: any;
-  category: 'Developer' | 'Design' | 'Data & Security' | 'Math & Finance' | 'Productivity' | 'Daily Life';
+  category: 'Developer' | 'Design' | 'Data & Security' | 'Math & Finance' | 'Productivity' | 'Daily Life' | 'File Conversion';
   badge?: string;
 }
 
+// Map all top 100 conversion permutations as dedicated tools
+const CONVERSION_TOOLS: ToolMeta[] = [
+  {
+    id: 'file-converter',
+    name: 'Universal File Converter Suite (100+ Formats)',
+    shortLabel: 'File Converter',
+    desc: 'Universal client-side file conversion engine for images, documents, audio, spreadsheets & data',
+    icon: ArrowRightLeft,
+    category: 'File Conversion',
+    badge: '100+ Formats',
+  },
+  ...TOP_CONVERSION_PERMUTATIONS.map((pair) => ({
+    id: pair.id,
+    name: pair.name,
+    shortLabel: pair.shortLabel,
+    desc: pair.desc,
+    icon: ArrowRightLeft,
+    category: 'File Conversion' as const,
+    badge: pair.badge || 'Fast',
+  })),
+];
+
 export const TOOLS_REGISTRY: ToolMeta[] = [
+  // 3D & CAD Previewer
+  {
+    id: '3d-viewer',
+    name: '3D File Previewer & CAD Inspector (STL, OBJ, 3MF)',
+    shortLabel: '3D File Previewer',
+    desc: 'Interactive WebGL previewer for 3D printing STL, Wavefront OBJ, 3MF, and PLY meshes with wireframes & stats',
+    icon: Box,
+    category: 'Design',
+    badge: '3D / CAD',
+  },
+
   // Daily Life & 30+ Features Suites
   { id: 'health-suite', name: 'Health, Fitness & Tip Calculator Suite', shortLabel: 'Health & Tips', desc: 'Tip splitter, BMI, TDEE calories, hydration & sleep', icon: Heart, category: 'Daily Life', badge: 'New' },
   { id: 'finance-suite', name: 'Finance, Recipe & Savings Suite', shortLabel: 'Finance & Recipe', desc: 'Recipe scaler, road trip fuel, markup & compound growth', icon: DollarSign, category: 'Daily Life', badge: 'New' },
@@ -94,11 +130,12 @@ export const TOOLS_REGISTRY: ToolMeta[] = [
   { id: 'lorem-gen', name: 'Lorem Ipsum Generator', shortLabel: 'Lorem Ipsum', desc: 'Mock copy paragraphs, words & HTML tags', icon: FileText, category: 'Productivity' },
   { id: 'sound-synth', name: 'Binaural Beats & White Noise', shortLabel: 'Noise & Binaural', desc: 'White/pink noise & theta focus waves', icon: Waves, category: 'Productivity', badge: 'Audio' },
   { id: 'friends-hub', name: 'Friends & Social Network', shortLabel: 'Friends Hub', desc: 'Add friends & view names across contributions', icon: Users, category: 'Productivity', badge: 'Social' },
+
+  // File Conversion Suite & 100+ Permutation Tools
+  ...CONVERSION_TOOLS,
 ];
 
-export const DEFAULT_FAVORITE_IDS = ['health-suite', 'finance-suite', 'productivity-suite', 'calculator', 'markdown', 'json-studio', 'color-studio', 'password-gen'];
-
-import { ThemeConfig, ThemeId } from '../types';
+export const DEFAULT_FAVORITE_IDS = ['3d-viewer', 'file-converter', 'health-suite', 'finance-suite', 'productivity-suite', 'calculator', 'markdown', 'json-studio', 'color-studio', 'password-gen'];
 
 export const THEMES: Record<ThemeId, ThemeConfig> = {
   indigo: {
