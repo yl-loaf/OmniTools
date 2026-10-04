@@ -42,6 +42,7 @@ export const SettingsPage: React.FC = () => {
 
   useEffect(() => {
     localStorage.setItem('omnitools_theme', currentTheme);
+    document.documentElement.setAttribute('data-theme', currentTheme);
     document.documentElement.className = currentTheme === 'cyberpunk' ? 'dark cyberpunk' : 'dark';
   }, [currentTheme]);
 

@@ -140,9 +140,15 @@ export default function App() {
 
   const handleThemeChange = (theme: ThemeId) => {
     setCurrentTheme(theme);
+    document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('omnitools_theme', theme);
     showToast(`Switched workspace theme to ${THEMES[theme].name}! ✨`, 'success');
   };
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    localStorage.setItem('omnitools_theme', currentTheme);
+  }, [currentTheme]);
 
   const getInitialTab = () => {
     if (typeof window !== 'undefined') {
