@@ -18,6 +18,7 @@ interface ActiveToolHeaderProps {
   onToggleFavorite: (toolId: string) => void;
   onNavigateFavorites: () => void;
   onReportBug: (toolId: string, toolName: string) => void;
+  onSuggestEnhancement: (toolId: string, toolName: string) => void;
 }
 
 export const ActiveToolHeader: React.FC<ActiveToolHeaderProps> = ({
@@ -28,6 +29,7 @@ export const ActiveToolHeader: React.FC<ActiveToolHeaderProps> = ({
   onToggleFavorite,
   onNavigateFavorites,
   onReportBug,
+  onSuggestEnhancement,
 }) => {
   const [copiedShare, setCopiedShare] = useState(false);
   const [hoverRating, setHoverRating] = useState(0);
@@ -161,6 +163,15 @@ export const ActiveToolHeader: React.FC<ActiveToolHeaderProps> = ({
             ({ratingCount})
           </span>
         </div>
+
+        <button
+          onClick={() => onSuggestEnhancement(tool.id, tool.name)}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-950/60 hover:bg-purple-900/80 text-purple-300 rounded-xl text-xs font-semibold transition border border-purple-800/60 cursor-pointer shadow-xs"
+          title="Suggest another function or feature to improve this existing tool"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+          <span>Add Function</span>
+        </button>
 
         <button
           onClick={handleShare}

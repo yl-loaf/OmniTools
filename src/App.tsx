@@ -11,6 +11,7 @@ import { FavoritesHub } from './components/FavoritesHub';
 import { ActiveToolHeader } from './components/ActiveToolHeader';
 import { HomePage } from './components/HomePage';
 import { ReportBugModal } from './components/ReportBugModal';
+import { SuggestEnhancementModal } from './components/SuggestEnhancementModal';
 import { FriendsHub } from './components/FriendsHub';
 import { TOOLS_REGISTRY, DEFAULT_FAVORITE_IDS, THEMES } from './data/toolsRegistry';
 
@@ -259,6 +260,14 @@ export default function App() {
   const handleOpenReportModal = (toolId: string, toolName: string) => {
     setActiveReportTool({ id: toolId, name: toolName });
     setReportModalOpen(true);
+  };
+
+  const [enhancementModalOpen, setEnhancementModalOpen] = useState(false);
+  const [enhancingTool, setEnhancingTool] = useState<{ id: string; name: string } | null>(null);
+
+  const handleOpenEnhancementModal = (toolId: string, toolName: string) => {
+    setEnhancingTool({ id: toolId, name: toolName });
+    setEnhancementModalOpen(true);
   };
 
   const handleSubmitBugReport = async (issueData: Omit<ToolIssue, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'pointsAwarded'>) => {
@@ -1154,6 +1163,7 @@ export default function App() {
             onToggleFavorite={handleToggleFavorite}
             onNavigateFavorites={() => setActiveTab('favorites')}
             onReportBug={handleOpenReportModal}
+            onSuggestEnhancement={handleOpenEnhancementModal}
           />
         )}
 
@@ -1342,6 +1352,18 @@ export default function App() {
         </div>
         <div>OmniTools Platform Architect • Professional Web Utility Suite</div>
       </footer>
+
+      {enhancingTool && (
+        <SuggestEnhancementModal
+          tool={enhancingTool}
+          currentUser={currentUser}
+          isGuest={isGuest}
+          isOpen={enhancementModalOpen}
+          onClose={() => setEnhancementModalOpen(false)}
+          onSubmit={handleSubmitRequest}
+          onOpenAuth={handleLoginGoogle}
+        />
+      )}
     </div>
   );
 }
