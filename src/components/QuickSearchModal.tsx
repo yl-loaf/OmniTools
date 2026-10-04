@@ -10,7 +10,8 @@ import {
   ArrowRight,
   Sparkles,
   Clock,
-  Trash2
+  Trash2,
+  Zap
 } from 'lucide-react';
 
 interface QuickSearchModalProps {
@@ -68,6 +69,25 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
     localStorage.removeItem('omnitools_recent_searches');
   };
 
+  // Highlight matches helper
+  const highlightMatch = (text: string, q: string) => {
+    if (!q.trim()) return text;
+    try {
+      const parts = text.split(new RegExp(`(${q.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'gi'));
+      return parts.map((part, i) =>
+        part.toLowerCase() === q.toLowerCase() ? (
+          <span key={i} className="bg-blue-500/30 text-blue-300 font-bold px-0.5 rounded underline">
+            {part}
+          </span>
+        ) : (
+          part
+        )
+      );
+    } catch {
+      return text;
+    }
+  };
+
   const filteredTools = TOOLS_REGISTRY.filter(
     (t) =>
       t.name.toLowerCase().includes(query.toLowerCase()) ||
@@ -75,6 +95,15 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
       t.category.toLowerCase().includes(query.toLowerCase()) ||
       t.shortLabel.toLowerCase().includes(query.toLowerCase())
   );
+
+  const autocompleteSuggestions = useMemo(() => {
+    if (!query.trim() || query.length < 1) return [];
+    return TOOLS_REGISTRY.filter(
+      (t) =>
+        t.name.toLowerCase().includes(query.toLowerCase()) ||
+        t.shortLabel.toLowerCase().includes(query.toLowerCase())
+    ).slice(0, 4);
+  }, [query]);
 
   const starredTools = filteredTools.filter((t) => favoriteIds.includes(t.id));
   const otherTools = filteredTools.filter((t) => !favoriteIds.includes(t.id));
@@ -112,9 +141,35 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
           </button>
         </div>
 
+        {/* Real-time Auto-complete Suggestions Bar */}
+        {autocompleteSuggestions.length > 0 && query.trim() && (
+          <div className="px-4 py-2 bg-slate-950/80 border-b border-slate-800 flex items-center gap-2 overflow-x-auto shrink-0">
+            <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1 shrink-0">
+              <Zap className="w-3 h-3 text-amber-400" /> Suggestions:
+            </span>
+            {autocompleteSuggestions.map((suggestion) => {
+              const SuggIcon = suggestion.icon;
+              return (
+                <button
+                  key={suggestion.id}
+                  onClick={() => {
+                    saveSearchTerm(suggestion.name);
+                    onSelectTab(suggestion.id);
+                    onClose();
+                  }}
+                  className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium border border-slate-700 transition flex items-center gap-1.5 shrink-0"
+                >
+                  <SuggIcon className="w-3 h-3 text-blue-400" />
+                  <span>{highlightMatch(suggestion.name, query)}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         {/* Results Container */}
         <div className="overflow-y-auto p-4 space-y-4 flex-1">
-          {/* Recent Searches Section (shown when query is empty or always when available) */}
+          {/* Recent Searches Section (shown when query is empty) */}
           {recentSearches.length > 0 && !query && (
             <div className="space-y-2 pb-2 border-b border-slate-800">
               <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-1 flex items-center justify-between">
@@ -176,9 +231,9 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="text-xs font-bold text-white group-hover:text-amber-300 truncate">
-                            {tool.name}
+                            {highlightMatch(tool.name, query)}
                           </div>
-                          <div className="text-[11px] text-slate-400 truncate">{tool.desc}</div>
+                          <div className="text-[11px] text-slate-400 truncate">{highlightMatch(tool.desc, query)}</div>
                         </div>
                       </button>
 
@@ -226,9 +281,9 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="text-xs font-semibold text-white group-hover:text-blue-300 truncate">
-                          {tool.name}
+                          {highlightMatch(tool.name, query)}
                         </div>
-                        <div className="text-[11px] text-slate-400 truncate">{tool.desc}</div>
+                        <div className="text-[11px] text-slate-400 truncate">{highlightMatch(tool.desc, query)}</div>
                       </div>
                     </button>
 
@@ -266,8 +321,8 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
                     className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-800/80 transition text-left border border-slate-800/60"
                   >
                     <div className="min-w-0 pr-3">
-                      <div className="text-xs font-medium text-purple-300 truncate">{req.title}</div>
-                      <div className="text-[11px] text-slate-400 truncate">{req.description}</div>
+                      <div className="text-xs font-medium text-purple-300 truncate">{highlightMatch(req.title, query)}</div>
+                      <div className="text-[11px] text-slate-400 truncate">{highlightMatch(req.description, query)}</div>
                     </div>
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 uppercase shrink-0">
                       {req.status}
