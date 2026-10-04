@@ -46,5 +46,19 @@ service cloud.firestore {
       allow update: if isSignedIn() || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['votes', 'voters', 'status', 'completedVersion', 'rejectionReason', 'pointsAwarded', 'updatedAt']);
       allow delete: if isSignedIn();
     }
+
+    // Tool Issues / Bug Reports
+    match /tool_issues/{issueId} {
+      allow read: if true;
+      allow create: if isValidId(issueId) && request.resource.data.toolId is string && request.resource.data.description is string;
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
+    }
+
+    // Tool Usage Stats
+    match /tool_stats/{statId} {
+      allow read: if true;
+      allow write: if true;
+    }
   }
 }

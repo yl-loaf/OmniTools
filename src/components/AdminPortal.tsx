@@ -153,7 +153,8 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
   };
 
   const handleBatchCopyRequests = (n: number) => {
-    const targets = filteredRequests.slice(0, n);
+    const pendingRequests = filteredRequests.filter((r) => r.status === 'pending');
+    const targets = pendingRequests.slice(0, n);
     if (targets.length === 0) return;
     const text = targets
       .map(
@@ -168,7 +169,8 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
   };
 
   const handleBatchCopyBugs = (n: number) => {
-    const targets = filteredIssues.slice(0, n);
+    const openBugs = filteredIssues.filter((i) => i.status === 'open');
+    const targets = openBugs.slice(0, n);
     if (targets.length === 0) return;
     const text = targets
       .map(
@@ -242,7 +244,7 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-1">
-              Copy user proposals, batch copy 1/2/5/10/20/25 features & bugs, resolve bug reports (+3 CP), and purge old submissions.
+              Batch copy new pending features & open bugs (1/2/5/10/20/25), resolve bug reports (+3 CP), and purge old submissions.
             </p>
           </div>
         </div>
@@ -329,10 +331,10 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
           </button>
         </div>
 
-        {/* Batch Copy 1, 2, 5, 10, 20, 25 Features / Bugs at once */}
+        {/* Batch Copy 1, 2, 5, 10, 20, 25 NEW pending features & open bugs only */}
         <div className="flex items-center gap-1 flex-wrap bg-slate-900 p-1.5 rounded-xl border border-slate-800">
           <span className="text-[10px] font-bold text-slate-400 px-2 uppercase">
-            Copy Top {activeAdminTab === 'requests' ? 'Features' : 'Bugs'}:
+            Copy New {activeAdminTab === 'requests' ? 'Pending' : 'Open'} Top:
           </span>
           {[1, 2, 5, 10, 20, 25].map((n) => {
             const batchKey = `batch-${activeAdminTab === 'requests' ? 'req' : 'bug'}-${n}`;
@@ -347,7 +349,7 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
                     ? 'bg-emerald-950 text-emerald-300 border-emerald-700'
                     : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
                 }`}
-                title={`Copy first ${n} ${activeAdminTab === 'requests' ? 'features' : 'bugs'} to clipboard`}
+                title={`Copy first ${n} new/pending ${activeAdminTab === 'requests' ? 'features' : 'bugs'} to clipboard`}
               >
                 {isCopied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-purple-400" />}
                 <span>{n}</span>
