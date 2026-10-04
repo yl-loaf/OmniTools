@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Timer, Play, Pause, RotateCcw, Zap, Sparkles } from 'lucide-react';
+import { Timer, Play, Pause, RotateCcw, Zap, Sparkles, Clock } from 'lucide-react';
 
 export const PrecisionTimerTool: React.FC = () => {
   const [totalSeconds, setTotalSeconds] = useState(60); // default 1 min
+  const [customInput, setCustomInput] = useState('60');
   const [remainingMs, setRemainingMs] = useState(60000);
   const [isRunning, setIsRunning] = useState(false);
   const [decimals, setDecimals] = useState(6);
@@ -55,13 +56,24 @@ export const PrecisionTimerTool: React.FC = () => {
 
   const handleReset = () => {
     setIsRunning(false);
-    setRemainingMs(totalMs);
+    setRemainingMs(totalSeconds * 1000);
   };
 
   const handleSetPreset = (secs: number) => {
     setIsRunning(false);
     setTotalSeconds(secs);
+    setCustomInput(String(secs));
     setRemainingMs(secs * 1000);
+  };
+
+  const handleCustomTimeSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const secs = parseFloat(customInput);
+    if (!isNaN(secs) && secs > 0) {
+      setIsRunning(false);
+      setTotalSeconds(secs);
+      setRemainingMs(secs * 1000);
+    }
   };
 
   return (
@@ -80,7 +92,7 @@ export const PrecisionTimerTool: React.FC = () => {
               </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-400 mt-1">
-              Timer with a percentage bar featuring dynamically changing decimal places that tick smoothly at sub-millisecond rates.
+              Timer with custom duration support and a high-precision percentage progress bar ticking smoothly.
             </p>
           </div>
         </div>
@@ -88,24 +100,47 @@ export const PrecisionTimerTool: React.FC = () => {
 
       {/* Main Timer Console */}
       <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
-        {/* Presets */}
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Quick Presets:</div>
-          <div className="flex items-center gap-2 flex-wrap">
-            {[10, 30, 60, 300, 1500].map((secs) => (
-              <button
-                key={secs}
-                onClick={() => handleSetPreset(secs)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition border ${
-                  totalSeconds === secs
-                    ? 'bg-cyan-600 text-white border-cyan-500'
-                    : 'bg-slate-950 border-slate-800 text-slate-300 hover:bg-slate-800'
-                }`}
-              >
-                {secs >= 60 ? `${secs / 60}m` : `${secs}s`}
-              </button>
-            ))}
+        {/* Presets & Custom Time Form */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-center">
+          <div className="space-y-1.5">
+            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Quick Presets:</div>
+            <div className="flex items-center gap-2 flex-wrap">
+              {[10, 30, 60, 300, 1500].map((secs) => (
+                <button
+                  key={secs}
+                  onClick={() => handleSetPreset(secs)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition border ${
+                    totalSeconds === secs
+                      ? 'bg-cyan-600 text-white border-cyan-500'
+                      : 'bg-slate-950 border-slate-800 text-slate-300 hover:bg-slate-800'
+                  }`}
+                >
+                  {secs >= 60 ? `${secs / 60}m` : `${secs}s`}
+                </button>
+              ))}
+            </div>
           </div>
+
+          <form onSubmit={handleCustomTimeSubmit} className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Set Custom Duration (Seconds):</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                step="0.1"
+                min="0.1"
+                value={customInput}
+                onChange={(e) => setCustomInput(e.target.value)}
+                placeholder="e.g. 45"
+                className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono"
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-cyan-300 rounded-xl text-xs font-bold transition border border-slate-700"
+              >
+                Set Time
+              </button>
+            </div>
+          </form>
         </div>
 
         {/* Big Percentage Display with Dynamic Decimals */}

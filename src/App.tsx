@@ -149,6 +149,14 @@ export default function App() {
     return DEFAULT_BASELINE_USAGE;
   };
 
+  const getInitialUser = (): UserProfile | null => {
+    try {
+      const saved = localStorage.getItem('omnitools_current_user');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return null;
+  };
+
   const [activeTab, setActiveTab] = useState<string>(getInitialTab);
   const [favoriteIds, setFavoriteIds] = useState<string[]>(getInitialFavorites);
   const [usageCounts, setUsageCounts] = useState<Record<string, number>>(getInitialUsageCounts);
@@ -162,7 +170,7 @@ export default function App() {
   const [firebaseConfig, setFirebaseConfig] = useState<FirebaseCustomConfig | null>(getSavedFirebaseConfig());
 
   // User State
-  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(getInitialUser);
   const [isGuest, setIsGuest] = useState(false);
 
   // App Data
@@ -263,19 +271,25 @@ export default function App() {
     saveLocalIssues(updatedIssues);
 
     // Award +3 CP to reporter
-    const reporterUser = users.find((u) => u.uid === target.reporterId);
-    if (reporterUser) {
-      const newCp = reporterUser.contributionPoints + 3;
+    const reporterUser = users.find((u) => u.uid === target.reporterId) || (currentUser?.uid === target.reporterId ? currentUser : null);
+    const currentReporterCp = reporterUser ? reporterUser.contributionPoints : 0;
+    const newCp = currentReporterCp + 3;
+
+    if (reporterUser || currentUser?.uid === target.reporterId) {
+      const baseUser = reporterUser || currentUser!;
       const updatedReporter: UserProfile = {
-        ...reporterUser,
+        ...baseUser,
         contributionPoints: newCp,
         updatedAt: nowIso,
       };
-      const updatedUsers = users.map((u) => (u.uid === reporterUser.uid ? updatedReporter : u));
+      const updatedUsers = users.some(u => u.uid === baseUser.uid)
+        ? users.map((u) => (u.uid === baseUser.uid ? updatedReporter : u))
+        : [updatedReporter, ...users];
+
       setUsers(updatedUsers);
       saveLocalUsers(updatedUsers);
 
-      if (currentUser?.uid === reporterUser.uid) {
+      if (currentUser?.uid === target.reporterId) {
         setCurrentUser(updatedReporter);
         localStorage.setItem('omnitools_current_user', JSON.stringify(updatedReporter));
       }
@@ -373,21 +387,26 @@ export default function App() {
             setIsAdminMode(true);
           }
 
+          const existingLocal = getInitialUser();
+          const existingPoints = existingLocal && existingLocal.uid === user.uid ? existingLocal.contributionPoints : 0;
+          const existingStreak = existingLocal && existingLocal.uid === user.uid ? existingLocal.streakDays : 1;
+          const existingShipped = existingLocal && existingLocal.uid === user.uid ? (existingLocal.shippedTools || []) : [];
+
           const userProfile: UserProfile = {
             uid: user.uid,
             displayName: user.displayName || (user.isAnonymous ? 'Guest User' : 'Community Member'),
             photoURL: user.photoURL || undefined,
             email: user.email || undefined,
-            contributionPoints: 0,
-            generatedCount: 0,
-            rejectedCount: 0,
-            submittedCount: 0,
-            streakDays: 1,
+            contributionPoints: existingPoints,
+            generatedCount: existingLocal?.generatedCount || 0,
+            rejectedCount: existingLocal?.rejectedCount || 0,
+            submittedCount: existingLocal?.submittedCount || 0,
+            streakDays: existingStreak,
             lastActiveDate: new Date().toISOString().split('T')[0],
-            unlockedBadgeIds: [],
-            shippedTools: [],
+            unlockedBadgeIds: existingLocal?.unlockedBadgeIds || [],
+            shippedTools: existingShipped,
             favoriteToolIds: favoriteIds,
-            createdAt: new Date().toISOString(),
+            createdAt: existingLocal?.createdAt || new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           };
 
@@ -397,6 +416,7 @@ export default function App() {
             console.warn('Error syncing user profile:', e);
           }
           setCurrentUser(userProfile);
+          localStorage.setItem('omnitools_current_user', JSON.stringify(userProfile));
         } else {
           setCurrentUser(null);
           setIsGuest(false);
@@ -442,11 +462,11 @@ export default function App() {
           if (auth.currentUser) {
             const found = loadedUsers.find((u) => u.uid === auth.currentUser?.uid);
             if (found) {
-              setCurrentUser(found);
-              if (found.favoriteToolIds && found.favoriteToolIds.length > 0) {
-                setFavoriteIds(found.favoriteToolIds);
-                localStorage.setItem('omnitools_favorite_tools', JSON.stringify(found.favoriteToolIds));
-              }
+              setCurrentUser((prev) => {
+                const updated = { ...found, contributionPoints: Math.max(found.contributionPoints, prev?.contributionPoints || 0) };
+                localStorage.setItem('omnitools_current_user', JSON.stringify(updated));
+                return updated;
+              });
             }
           }
         },
@@ -551,23 +571,21 @@ export default function App() {
         showToast(`Google Sign-In: ${err.message}`, 'penalty');
       }
     } else {
+      const existing = getInitialUser();
       const mockUser: UserProfile = {
-        uid: `admin-${Date.now()}`,
-        displayName: 'Lead Platform Architect',
+        uid: existing?.uid || `admin-${Date.now()}`,
+        displayName: existing?.displayName || 'Lead Platform Architect',
         email: ADMIN_EMAIL,
-        contributionPoints: 10,
-        generatedCount: 5,
+        contributionPoints: existing?.contributionPoints || 10,
+        generatedCount: existing?.generatedCount || 5,
         rejectedCount: 0,
         submittedCount: 5,
         streakDays: 7,
         lastActiveDate: new Date().toISOString().split('T')[0],
         unlockedBadgeIds: ['first-spark', 'master-architect'],
-        shippedTools: [
-          { id: 'tool-md', name: 'Markdown Studio', version: 'v1.0.2', completedAt: new Date().toISOString() },
-          { id: 'tool-finance', name: 'Finance Calculator', version: 'v1.0.2', completedAt: new Date().toISOString() },
-        ],
+        shippedTools: existing?.shippedTools || [],
         favoriteToolIds: favoriteIds,
-        createdAt: new Date().toISOString(),
+        createdAt: existing?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
       setCurrentUser(mockUser);
@@ -593,20 +611,21 @@ export default function App() {
         showToast(`Guest login: ${err.message}`, 'penalty');
       }
     } else {
-      const guestId = `guest-${Math.floor(1000 + Math.random() * 9000)}`;
+      const existing = getInitialUser();
+      const guestId = existing?.uid || `guest-${Math.floor(1000 + Math.random() * 9000)}`;
       const guestUser: UserProfile = {
         uid: guestId,
-        displayName: `Guest #${guestId.slice(-4)}`,
-        contributionPoints: 0,
-        generatedCount: 0,
+        displayName: existing?.displayName || `Guest #${guestId.slice(-4)}`,
+        contributionPoints: existing?.contributionPoints || 0,
+        generatedCount: existing?.generatedCount || 0,
         rejectedCount: 0,
         submittedCount: 0,
-        streakDays: 0,
+        streakDays: existing?.streakDays || 0,
         lastActiveDate: new Date().toISOString().split('T')[0],
         unlockedBadgeIds: [],
         shippedTools: [],
         favoriteToolIds: favoriteIds,
-        createdAt: new Date().toISOString(),
+        createdAt: existing?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
       setCurrentUser(guestUser);
@@ -657,6 +676,7 @@ export default function App() {
     };
 
     setCurrentUser(updated);
+    localStorage.setItem('omnitools_current_user', JSON.stringify(updated));
 
     const { db, isConfigured } = initFirebase();
     if (isConfigured && db) {
@@ -674,7 +694,6 @@ export default function App() {
       const updatedUsers = users.map((u) => (u.uid === currentUser.uid ? updated : u));
       setUsers(updatedUsers);
       saveLocalUsers(updatedUsers);
-      localStorage.setItem('omnitools_current_user', JSON.stringify(updated));
     }
 
     showToast(`Claimed daily reward! +1 CP (Streak: ${newStreak} days 🔥)`, 'success');
@@ -697,6 +716,7 @@ export default function App() {
     };
 
     setCurrentUser(updated);
+    localStorage.setItem('omnitools_current_user', JSON.stringify(updated));
 
     const { db, isConfigured } = initFirebase();
     if (isConfigured && db) {
@@ -713,7 +733,6 @@ export default function App() {
       const updatedUsers = users.map((u) => (u.uid === currentUser.uid ? updated : u));
       setUsers(updatedUsers);
       saveLocalUsers(updatedUsers);
-      localStorage.setItem('omnitools_current_user', JSON.stringify(updated));
     }
 
     showToast('Successfully purchased a Streak Freeze! 🧊 Protected against missed days.', 'success');
@@ -791,7 +810,7 @@ export default function App() {
 
     // Update target author profile & record shipped tool
     if (!req.isGuest && pointsDelta !== 0) {
-      const targetUser = users.find((u) => u.uid === req.authorId);
+      const targetUser = users.find((u) => u.uid === req.authorId) || (currentUser?.uid === req.authorId ? currentUser : null);
       if (targetUser) {
         const newCp = Math.max(0, targetUser.contributionPoints + pointsDelta);
         const currentShipped = targetUser.shippedTools || [];
