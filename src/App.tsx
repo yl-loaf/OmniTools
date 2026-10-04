@@ -1150,6 +1150,7 @@ export default function App() {
             activeTab={activeTab}
             favoriteIds={favoriteIds}
             usageCount={usageCounts[activeTab] || 0}
+            currentUser={currentUser}
             onToggleFavorite={handleToggleFavorite}
             onNavigateFavorites={() => setActiveTab('favorites')}
             onReportBug={handleOpenReportModal}
