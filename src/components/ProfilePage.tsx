@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { UserProfile, ToolRequest, ToolIssue, CPTransaction } from '../types';
-import { getLocalRequests, getLocalIssues } from '../services/firebase';
-import { User, Trophy, Flame, Award, ArrowLeft, ExternalLink, History, Sparkles, CheckCircle2, Bug, Wrench } from 'lucide-react';
+import { getLocalRequests, getLocalIssues, initFirebase, getSavedFirebaseConfig } from '../services/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
+import { User, Trophy, Flame, Award, ArrowLeft, ExternalLink, History, Sparkles, CheckCircle2, Bug, Wrench, Camera } from 'lucide-react';
+import { CameraAvatarModal } from './CameraAvatarModal';
 
 export const ProfilePage: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [requests, setRequests] = useState<ToolRequest[]>([]);
   const [issues, setIssues] = useState<ToolIssue[]>([]);
+  const [cameraModalOpen, setCameraModalOpen] = useState(false);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -19,6 +23,32 @@ export const ProfilePage: React.FC = () => {
     setRequests(getLocalRequests());
     setIssues(getLocalIssues());
   }, []);
+
+  const handleSaveAvatar = async (photoURL: string) => {
+    if (!currentUser) return;
+    const updatedUser: UserProfile = {
+      ...currentUser,
+      photoURL,
+      updatedAt: new Date().toISOString(),
+    };
+    setCurrentUser(updatedUser);
+    localStorage.setItem('omnitools_current_user', JSON.stringify(updatedUser));
+
+    const { db, isConfigured } = initFirebase(getSavedFirebaseConfig());
+    if (isConfigured && db) {
+      try {
+        await updateDoc(doc(db, 'users', currentUser.uid), {
+          photoURL,
+          updatedAt: new Date().toISOString(),
+        });
+      } catch (e) {
+        console.warn('Firestore update avatar error:', e);
+      }
+    }
+
+    setToastMsg('Profile avatar updated successfully and stored in your profile!');
+    setTimeout(() => setToastMsg(null), 4000);
+  };
 
   if (!currentUser) {
     return (
@@ -56,7 +86,17 @@ export const ProfilePage: React.FC = () => {
   ];
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 animate-in fade-in">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 animate-in.fade-in">
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed bottom-5 right-5 z-50 animate-bounce">
+          <div className="px-4 py-3 bg-emerald-950/90 text-emerald-200 border border-emerald-700/80 rounded-xl shadow-2xl flex items-center gap-2 text-xs font-semibold">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <span>{toastMsg}</span>
+          </div>
+        </div>
+      )}
+
       {/* Top Navbar Back */}
       <div className="flex items-center justify-between">
         <a
@@ -74,9 +114,19 @@ export const ProfilePage: React.FC = () => {
         <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex items-center gap-5">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-white text-2xl shadow-xl shadow-blue-500/20">
-            {currentUser.displayName.slice(0, 2).toUpperCase()}
+          <div className="relative group cursor-pointer" onClick={() => setCameraModalOpen(true)}>
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-white text-2xl shadow-xl shadow-blue-500/20 overflow-hidden border-2 border-blue-500/40">
+              {currentUser.photoURL ? (
+                <img src={currentUser.photoURL} alt={currentUser.displayName} className="w-full h-full object-cover" />
+              ) : (
+                currentUser.displayName.slice(0, 2).toUpperCase()
+              )}
+            </div>
+            <div className="absolute inset-0 bg-black/60 rounded-2xl opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white">
+              <Camera className="w-6 h-6 text-blue-400" />
+            </div>
           </div>
+
           <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-xl sm:text-2xl font-black text-white">{currentUser.displayName}</h1>
@@ -85,6 +135,13 @@ export const ProfilePage: React.FC = () => {
               </span>
             </div>
             <p className="text-xs text-slate-400">{currentUser.email || 'Community Member & Contributor'}</p>
+            <button
+              onClick={() => setCameraModalOpen(true)}
+              className="text-[11px] text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1 mt-1 transition"
+            >
+              <Camera className="w-3.5 h-3.5" />
+              <span>Change Avatar via Camera / Upload</span>
+            </button>
           </div>
         </div>
 
@@ -200,6 +257,13 @@ export const ProfilePage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Camera Avatar Modal */}
+      <CameraAvatarModal
+        isOpen={cameraModalOpen}
+        onClose={() => setCameraModalOpen(false)}
+        onSaveAvatar={handleSaveAvatar}
+      />
     </div>
   );
 };

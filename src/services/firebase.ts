@@ -23,51 +23,9 @@ import {
   User
 } from 'firebase/auth';
 import { FirebaseCustomConfig, ToolRequest, UserProfile } from '../types';
+import { COMMUNITY_POPULAR_REQUESTS } from '../data/communityRequests';
 
-const STORAGE_KEY_FIREBASE_CONFIG = 'omnitools_firebase_config';
-
-export enum OperationType {
-  CREATE = 'create',
-  UPDATE = 'update',
-  DELETE = 'delete',
-  LIST = 'list',
-  GET = 'get',
-  WRITE = 'write',
-}
-
-export interface FirestoreErrorInfo {
-  error: string;
-  operationType: OperationType;
-  path: string | null;
-  authInfo: {
-    userId?: string | null;
-    email?: string | null;
-    emailVerified?: boolean | null;
-    isAnonymous?: boolean | null;
-  };
-}
-
-export function handleFirestoreError(
-  error: unknown,
-  operationType: OperationType,
-  path: string | null,
-  authInstance?: Auth | null
-) {
-  const currentUser = authInstance?.currentUser;
-  const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
-    authInfo: {
-      userId: currentUser?.uid,
-      email: currentUser?.email,
-      emailVerified: currentUser?.emailVerified,
-      isAnonymous: currentUser?.isAnonymous,
-    },
-    operationType,
-    path,
-  };
-  console.warn('Firestore Operation Error: ', JSON.stringify(errInfo));
-  return errInfo;
-}
+const STORAGE_KEY_FIREBASE_CONFIG = 'omnitools_firebase_config_v1';
 
 let app: FirebaseApp | null = null;
 let db: Firestore | null = null;
@@ -77,6 +35,7 @@ export function getSavedFirebaseConfig(): FirebaseCustomConfig | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY_FIREBASE_CONFIG);
     if (!raw) {
+      // Default placeholder configuration for OmniTools
       const defaultConfig: FirebaseCustomConfig = {
         apiKey: "AIzaSyAMu6zJOZq39bJdLy5ohF5oQ2zXJpubATM",
         authDomain: "omnitools-e2d82.firebaseapp.com",
@@ -169,21 +128,19 @@ const LOCAL_USERS_KEY = 'omnitools_users_local';
 export function getLocalRequests(): ToolRequest[] {
   try {
     const data = localStorage.getItem(LOCAL_REQUESTS_KEY);
-    if (!data) {
-      return [];
+    const parsed: ToolRequest[] = data ? JSON.parse(data) : [];
+    
+    // Ensure all 20 COMMUNITY_POPULAR_REQUESTS are included
+    const existingIds = new Set(parsed.map(p => p.id));
+    const merged = [...parsed];
+    for (const comm of COMMUNITY_POPULAR_REQUESTS) {
+      if (!existingIds.has(comm.id)) {
+        merged.push(comm);
+      }
     }
-    const parsed: ToolRequest[] = JSON.parse(data);
-    // Purge fake mock requests
-    const realReqs = parsed.filter(
-      (r) => !['req-1', 'req-2', 'req-3', 'req-4'].includes(r.id) &&
-             !['dev-alex', 'elena-ux', 'marcus-k'].includes(r.authorId)
-    );
-    if (realReqs.length !== parsed.length) {
-      localStorage.setItem(LOCAL_REQUESTS_KEY, JSON.stringify(realReqs));
-    }
-    return realReqs;
+    return merged;
   } catch {
-    return [];
+    return COMMUNITY_POPULAR_REQUESTS;
   }
 }
 
@@ -198,7 +155,6 @@ export function getLocalUsers(): UserProfile[] {
       return [];
     }
     const parsed: UserProfile[] = JSON.parse(data);
-    // Purge fake mock seed users
     const realUsers = parsed.filter(
       (u) => !['dev-alex', 'elena-ux', 'marcus-k'].includes(u.uid)
     );
@@ -231,4 +187,3 @@ export function getLocalIssues(): import('../types').ToolIssue[] {
 export function saveLocalIssues(issues: import('../types').ToolIssue[]) {
   localStorage.setItem(LOCAL_ISSUES_KEY, JSON.stringify(issues));
 }
-

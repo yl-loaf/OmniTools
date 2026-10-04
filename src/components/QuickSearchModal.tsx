@@ -8,7 +8,9 @@ import {
   MessageSquarePlus,
   Trophy,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  Clock,
+  Trash2
 } from 'lucide-react';
 
 interface QuickSearchModalProps {
@@ -29,6 +31,16 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
   onToggleFavorite = () => {},
 }) => {
   const [query, setQuery] = useState('');
+  const [recentSearches, setRecentSearches] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('omnitools_recent_searches');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {}
+    return [];
+  });
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -41,6 +53,20 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
   }, [onClose]);
 
   if (!isOpen) return null;
+
+  const saveSearchTerm = (term: string) => {
+    const trimmed = term.trim();
+    if (!trimmed || trimmed.length < 2) return;
+    const filtered = recentSearches.filter((s) => s.toLowerCase() !== trimmed.toLowerCase());
+    const updated = [trimmed, ...filtered].slice(0, 5);
+    setRecentSearches(updated);
+    localStorage.setItem('omnitools_recent_searches', JSON.stringify(updated));
+  };
+
+  const handleClearRecent = () => {
+    setRecentSearches([]);
+    localStorage.removeItem('omnitools_recent_searches');
+  };
 
   const filteredTools = TOOLS_REGISTRY.filter(
     (t) =>
@@ -70,6 +96,11 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && query.trim()) {
+                saveSearchTerm(query);
+              }
+            }}
             placeholder="Search tools, commands, or starred favorites..."
             className="w-full bg-transparent text-sm text-white focus:outline-hidden placeholder:text-slate-500"
           />
@@ -83,6 +114,38 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
 
         {/* Results Container */}
         <div className="overflow-y-auto p-4 space-y-4 flex-1">
+          {/* Recent Searches Section (shown when query is empty or always when available) */}
+          {recentSearches.length > 0 && !query && (
+            <div className="space-y-2 pb-2 border-b border-slate-800">
+              <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-1 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-blue-400" /> Recent Searches ({recentSearches.length})
+                </span>
+                <button
+                  onClick={handleClearRecent}
+                  className="text-[10px] text-slate-500 hover:text-rose-400 transition flex items-center gap-1"
+                >
+                  <Trash2 className="w-3 h-3" /> Clear
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {recentSearches.map((term, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      setQuery(term);
+                      saveSearchTerm(term);
+                    }}
+                    className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-medium border border-slate-700 transition flex items-center gap-1.5"
+                  >
+                    <Search className="w-3 h-3 text-slate-400" />
+                    <span>{term}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Starred Favorites First */}
           {starredTools.length > 0 && (
             <div className="space-y-2">
@@ -102,6 +165,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
                     >
                       <button
                         onClick={() => {
+                          if (query) saveSearchTerm(query);
                           onSelectTab(tool.id);
                           onClose();
                         }}
@@ -151,6 +215,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
                   >
                     <button
                       onClick={() => {
+                        if (query) saveSearchTerm(query);
                         onSelectTab(tool.id);
                         onClose();
                       }}
@@ -194,6 +259,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
                   <button
                     key={req.id}
                     onClick={() => {
+                      if (query) saveSearchTerm(query);
                       onSelectTab('request-hub');
                       onClose();
                     }}
