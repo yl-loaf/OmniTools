@@ -17,6 +17,15 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ users, currentUserId }
     return earned || null;
   };
 
+  const renderUserName = (user: UserProfile) => {
+    const isSelf = user.uid === currentUserId;
+    const showName = isSelf || user.showNameOnLeaderboard;
+    if (showName) {
+      return user.displayName;
+    }
+    return 'Anonymous Architect';
+  };
+
   const top3 = sortedUsers.slice(0, 3);
 
   return (
@@ -64,7 +73,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ users, currentUserId }
                     top3[1].displayName.charAt(0)
                   )}
                 </div>
-                <h4 className="font-bold text-sm text-white truncate max-w-[160px]">{top3[1].displayName}</h4>
+                <h4 className="font-bold text-sm text-white truncate max-w-[160px]">{renderUserName(top3[1])}</h4>
                 <div className="text-xs font-mono text-cyan-400 font-bold mt-1">
                   {top3[1].contributionPoints} CP
                 </div>
@@ -92,7 +101,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ users, currentUserId }
                     top3[0].displayName.charAt(0)
                   )}
                 </div>
-                <h4 className="font-extrabold text-base text-white truncate max-w-[180px]">{top3[0].displayName}</h4>
+                <h4 className="font-extrabold text-base text-white truncate max-w-[180px]">{renderUserName(top3[0])}</h4>
                 <div className="text-sm font-mono text-amber-400 font-black mt-1">
                   {top3[0].contributionPoints} CP
                 </div>
@@ -127,7 +136,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ users, currentUserId }
                     top3[2].displayName.charAt(0)
                   )}
                 </div>
-                <h4 className="font-bold text-sm text-white truncate max-w-[160px]">{top3[2].displayName}</h4>
+                <h4 className="font-bold text-sm text-white truncate max-w-[160px]">{renderUserName(top3[2])}</h4>
                 <div className="text-xs font-mono text-cyan-400 font-bold mt-1">
                   {top3[2].contributionPoints} CP
                 </div>
@@ -192,7 +201,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ users, currentUserId }
                             </div>
                             <div>
                               <div className="text-white font-medium flex items-center gap-1.5">
-                                <span>{user.displayName}</span>
+                                <span>{renderUserName(user)}</span>
                                 {isCurrentUser && (
                                   <span className="text-[10px] bg-blue-600 text-white px-1.5 py-0.2 rounded-xs">
                                     You

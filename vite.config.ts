@@ -18,6 +18,7 @@ export default defineConfig(() => {
           main: path.resolve(__dirname, 'index.html'),
           tools: path.resolve(__dirname, 'tools.html'),
           profile: path.resolve(__dirname, 'profile.html'),
+          settings: path.resolve(__dirname, 'settings.html'),
         },
       },
     },

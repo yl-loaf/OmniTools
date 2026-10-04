@@ -104,6 +104,7 @@ export interface UserProfile {
   friendIds?: string[];
   friendRequests?: string[];
   transactions?: CPTransaction[];
+  showNameOnLeaderboard?: boolean;
   createdAt: string;
   updatedAt: string;
 }

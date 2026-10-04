@@ -53,7 +53,8 @@ import {
   Award,
   Users,
   Box,
-  ShieldAlert
+  ShieldAlert,
+  Settings
 } from 'lucide-react';
 
 interface NavbarProps {
