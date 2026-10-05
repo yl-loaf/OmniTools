@@ -57,6 +57,21 @@ import { SoundBinauralGenerator } from './components/tools/SoundBinauralGenerato
 import { ThreeDViewer } from './components/tools/ThreeDViewer';
 import { ThreeDConverter } from './components/tools/ThreeDConverter';
 import { FileConverterSuite } from './components/tools/FileConverterSuite';
+import { JwtAuditor } from './components/tools/JwtAuditor';
+import { PomodoroSoundscapeMixer } from './components/tools/PomodoroSoundscapeMixer';
+import { JsonToTsGenerator } from './components/tools/JsonToTsGenerator';
+import { CssGridBuilder } from './components/tools/CssGridBuilder';
+import { RegexVisualizer } from './components/tools/RegexVisualizer';
+import { DataSculptor } from './components/tools/DataSculptor';
+import { CssSnapshotDiff } from './components/tools/CssSnapshotDiff';
+import { AssetOverrider } from './components/tools/AssetOverrider';
+import { ApiPlaybackMock } from './components/tools/ApiPlaybackMock';
+import { CodeDocContextTool } from './components/tools/CodeDocContextTool';
+import { RequestReplayTool } from './components/tools/RequestReplayTool';
+import { StyleSyncVars } from './components/tools/StyleSyncVars';
+import { DevLinkSnippets } from './components/tools/DevLinkSnippets';
+import { CodeLensNavigatorTool } from './components/tools/CodeLensNavigatorTool';
+import { A11yLensLive } from './components/tools/A11yLensLive';
 
 // Daily Life & 30+ Features Suites
 import { HealthFitnessSuite } from './components/tools/daily/HealthFitnessSuite';
@@ -1289,6 +1304,21 @@ export default function App() {
         {activeTab === 'sound-synth' && <SoundBinauralGenerator />}
         {activeTab === '3d-viewer' && <ThreeDViewer />}
         {activeTab === '3d-converter' && <ThreeDConverter />}
+        {activeTab === 'jwt-auditor' && <JwtAuditor />}
+        {activeTab === 'ambient-soundscape' && <PomodoroSoundscapeMixer />}
+        {activeTab === 'json-ts-gen' && <JsonToTsGenerator />}
+        {activeTab === 'css-grid-builder' && <CssGridBuilder />}
+        {activeTab === 'regex-visualizer' && <RegexVisualizer />}
+        {activeTab === 'data-sculptor' && <DataSculptor />}
+        {activeTab === 'css-snapshot-diff' && <CssSnapshotDiff />}
+        {activeTab === 'asset-overrider' && <AssetOverrider />}
+        {activeTab === 'api-playback' && <ApiPlaybackMock />}
+        {activeTab === 'codedoc-context' && <CodeDocContextTool />}
+        {activeTab === 'request-replay' && <RequestReplayTool />}
+        {activeTab === 'stylesync-vars' && <StyleSyncVars />}
+        {activeTab === 'devlink-snippets' && <DevLinkSnippets />}
+        {activeTab === 'codelens-navigator' && <CodeLensNavigatorTool />}
+        {activeTab === 'a11ylens-live' && <A11yLensLive />}
 
         {/* Universal File Converter Suite & 100+ Permutation Tools */}
         {(activeTab === 'file-converter' || activeTab.startsWith('convert-')) && (
