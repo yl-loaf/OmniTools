@@ -126,7 +126,7 @@ export const ToolRequestHub: React.FC<ToolRequestHubProps> = ({
         return;
       }
 
-      const model = localStorage.getItem('omnitools_gemini_model') || 'gemini-2.5-flash';
+      const model = localStorage.getItem('omnitools_gemini_model') || 'gemini-3.5-flash-lite';
       const ai = new GoogleGenAI({ apiKey });
       
       let res;
@@ -137,9 +137,9 @@ export const ToolRequestHub: React.FC<ToolRequestHubProps> = ({
         });
       } catch (firstErr) {
         // Fallback model retry if primary model name fails
-        console.warn('Primary Gemini model failed, retrying with gemini-2.5-flash-lite:', firstErr);
+        console.warn('Primary Gemini model failed, retrying with gemini-3.5-flash-lite:', firstErr);
         res = await ai.models.generateContent({
-          model: 'gemini-2.5-flash-lite',
+          model: 'gemini-3.5-flash-lite',
           contents: 'Generate a creative, highly useful web developer tool or browser utility idea for an online productivity suite. Return ONLY valid JSON with keys: title (string, short punchy name), description (string, 2 sentences explaining its value), category (one of: productivity, math, text, conversion, developer, utility, other).',
         });
       }

@@ -129,7 +129,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onBack }) => {
   });
   const [showKeyText, setShowKeyText] = useState(false);
   const [geminiModel, setGeminiModel] = useState<string>(() => {
-    return localStorage.getItem('omnitools_gemini_model') || 'gemini-2.5-flash';
+    return localStorage.getItem('omnitools_gemini_model') || 'gemini-3.5-flash-lite';
   });
   const [geminiTemp, setGeminiTemp] = useState<string>(() => {
     return localStorage.getItem('omnitools_gemini_temperature') || '0.7';
@@ -1050,9 +1050,9 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onBack }) => {
                   }}
                   className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-hidden focus:border-purple-500 cursor-pointer"
                 >
-                  <option value="gemini-2.5-flash">Gemini 2.5 Flash (Fast, Recommended)</option>
-                  <option value="gemini-2.5-pro">Gemini 2.5 Pro (Deep Reasoning)</option>
-                  <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite (Ultra-Low Latency)</option>
+                  <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite (Recommended)</option>
+                  <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
+                  <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
                 </select>
                 <p className="text-[10px] text-slate-500">Selected model handles idea generation & enhancement suggestions</p>
               </div>
