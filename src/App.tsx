@@ -596,6 +596,12 @@ export default function App() {
             friendIds: existingFriends,
             createdAt: firestoreUser?.createdAt || existingLocal?.createdAt || new Date().toISOString(),
             updatedAt: new Date().toISOString(),
+            autoGeminiPurchased: firestoreUser?.autoGeminiPurchased ?? existingLocal?.autoGeminiPurchased ?? false,
+            autoGeminiTurboPurchased: firestoreUser?.autoGeminiTurboPurchased ?? existingLocal?.autoGeminiTurboPurchased ?? false,
+            autoGeminiEnabled: firestoreUser?.autoGeminiEnabled ?? existingLocal?.autoGeminiEnabled ?? false,
+            autoGeminiIntervalMinutes: firestoreUser?.autoGeminiIntervalMinutes ?? existingLocal?.autoGeminiIntervalMinutes ?? 60,
+            autoGeminiLastRun: firestoreUser?.autoGeminiLastRun || existingLocal?.autoGeminiLastRun || undefined,
+            autoGeminiSubmittedCount: firestoreUser?.autoGeminiSubmittedCount ?? existingLocal?.autoGeminiSubmittedCount ?? 0,
           };
 
           try {

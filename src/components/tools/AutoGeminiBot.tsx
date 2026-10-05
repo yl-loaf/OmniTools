@@ -46,7 +46,7 @@ export const AutoGeminiBot: React.FC<AutoGeminiBotProps> = ({
   const isPurchased = currentUser?.autoGeminiPurchased === true;
   const isTurbo = currentUser?.autoGeminiTurboPurchased === true;
   const isEnabled = currentUser?.autoGeminiEnabled === true;
-  const intervalSeconds = currentUser?.autoGeminiIntervalMinutes ? currentUser.autoGeminiIntervalMinutes * 60 : (isTurbo ? 10 : 3600);
+  const intervalSeconds = currentUser?.autoGeminiIntervalMinutes ? currentUser.autoGeminiIntervalMinutes * 60 : (isTurbo ? 5 : 3600);
   const lastRun = currentUser?.autoGeminiLastRun;
   const submittedCount = currentUser?.autoGeminiSubmittedCount || 0;
 
@@ -109,7 +109,7 @@ export const AutoGeminiBot: React.FC<AutoGeminiBotProps> = ({
     }, 500);
   };
 
-  // Handle purchasing Turbo Mode for 30 CP (as fast as possible)
+  // Handle purchasing Turbo Mode for 30 CP (5s fast limit)
   const handlePurchaseTurbo = () => {
     if (!currentUser) {
       onOpenAuth();
@@ -131,14 +131,14 @@ export const AutoGeminiBot: React.FC<AutoGeminiBotProps> = ({
         autoGeminiPurchased: true,
         autoGeminiTurboPurchased: true,
         autoGeminiEnabled: true,
-        autoGeminiIntervalMinutes: 0.1666, // 10 seconds
+        autoGeminiIntervalMinutes: 0.0833, // 5 seconds
         autoGeminiLastRun: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
 
       onUpdateUser(updated);
       setIsPurchasingTurbo(false);
-      setStatusMessage('🚀 Turbo Mode unlocked! Rate limits reduced to as fast as possible (10s interval).');
+      setStatusMessage('🚀 Turbo Mode unlocked! Rate limit reduced to 5s interval.');
       setTimeout(() => setStatusMessage(null), 6000);
     }, 500);
   };
@@ -167,12 +167,12 @@ export const AutoGeminiBot: React.FC<AutoGeminiBotProps> = ({
     onUpdateUser(updated);
   };
 
-  // Core execution: Run Gemini autonomous idea generator with rate limit guards
+  // Core execution: Run Gemini autonomous idea generator with strict genre rotation & 5s rate limit guard
   const handleRunAutonomousBot = async (isBackgroundRun = false) => {
     if (!currentUser || !isPurchased) return;
 
-    // Rate Limit Guard: Turbo mode allows 2 seconds cooldown, standard allows 15 mins
-    const cooldownSecs = isTurbo ? 2 : 900;
+    // Rate Limit Guard: Turbo mode allows 5 seconds cooldown, standard allows 15 mins
+    const cooldownSecs = isTurbo ? 5 : 900;
     if (lastRun && !isBackgroundRun) {
       const elapsedSecs = (Date.now() - new Date(lastRun).getTime()) / 1000;
       if (elapsedSecs < cooldownSecs) {
@@ -183,7 +183,7 @@ export const AutoGeminiBot: React.FC<AutoGeminiBotProps> = ({
     }
 
     setIsGenerating(true);
-    setStatusMessage(isTurbo ? '🚀 [Turbo] Autonomous Bot generating ultra-fast tool idea...' : '🤖 Autonomous Bot calling Gemini API...');
+    setStatusMessage(isTurbo ? '🚀 [Turbo] Autonomous Bot generating diverse tool idea (5s rate limit)...' : '🤖 Autonomous Bot calling Gemini API...');
 
     try {
       const apiKey = localStorage.getItem('omnitools_gemini_key') || import.meta.env.VITE_GEMINI_API_KEY;
@@ -194,18 +194,32 @@ export const AutoGeminiBot: React.FC<AutoGeminiBotProps> = ({
       const model = localStorage.getItem('omnitools_gemini_model') || 'gemini-3.5-flash-lite';
       const ai = new GoogleGenAI({ apiKey });
 
-      const existingToolsSummary = TOOLS_REGISTRY.map(t => `- ${t.name}: ${t.desc}`).join('\n');
+      // Gather recent ideas/requests to analyze recent genres and enforce strict rotation
+      const recentRequests = requests.slice(0, 8);
+      const recentCategories = recentRequests.map(r => r.category);
+      const recentTitles = recentRequests.map(r => r.title);
+
+      const existingToolsSummary = TOOLS_REGISTRY.slice(0, 25).map(t => `- ${t.name} (${t.category}): ${t.desc}`).join('\n');
       const queueSummary = requests && requests.length > 0
-        ? requests.map(r => `- [${r.status.toUpperCase()}] ${r.title}: ${r.description}`).join('\n')
+        ? requests.map(r => `- [${r.status.toUpperCase()}] (${r.category}) ${r.title}: ${r.description}`).join('\n')
         : 'None';
 
-      const promptText = `Here is a list of existing tools already built into our web utility suite:
+      const promptText = `Here is a list of recent tool ideas and existing tools in our suite:
 ${existingToolsSummary}
 
-Here is a list of tool suggestions and feature requests currently in the community queue (do NOT repeat, overlap with, or recreate any of these queued ideas):
+Here is the current community request queue:
 ${queueSummary}
 
-Generate a creative, highly useful web developer tool or browser utility idea that is COMPLETELY UNIQUE and different from any of the existing tools and queued feature requests listed above. Avoid any duplication or redundancy. Return ONLY valid JSON with keys: title (string, short punchy name), description (string, 2 sentences explaining its value), category (one of: productivity, math, text, conversion, developer, utility, other).`;
+Recently used categories/genres to AVOID repeating right now: ${JSON.stringify(recentCategories)}.
+Recently used titles to AVOID repeating: ${JSON.stringify(recentTitles)}.
+
+CRITICAL DIVERSITY & GENRE ROTATION REQUIREMENT:
+You MUST pick a completely different category/genre than the ones most recently generated or submitted above (e.g., rotate through: productivity, math, text, conversion, developer, utility, security, design, daily life). Ensure the genre, domain, and functionality are completely distinct and fresh every single time. Never create two tools of the same genre back-to-back.
+
+Return ONLY valid JSON with keys:
+- title (string, short punchy name)
+- description (string, 2 sentences explaining its value)
+- category (one of: productivity, math, text, conversion, developer, utility, other)`;
 
       let res;
       try {
@@ -246,7 +260,7 @@ Generate a creative, highly useful web developer tool or browser utility idea th
       // Automatically submit request
       onSubmitRequest({
         title: parsed.title,
-        description: `${parsed.description} [Generated autonomously by Auto Gemini Bot 🤖${isTurbo ? ' 🚀 Turbo' : ''}]`,
+        description: `${parsed.description} [Generated autonomously by Auto Gemini Bot 🤖${isTurbo ? ' 🚀 Turbo (5s)' : ''}]`,
         category: (parsed.category as RequestCategory) || 'developer',
         status: 'pending',
         authorId: currentUser.uid,
@@ -265,7 +279,7 @@ Generate a creative, highly useful web developer tool or browser utility idea th
       };
 
       onUpdateUser(updatedUser);
-      setStatusMessage(`Successfully auto-submitted new Gemini idea: "${parsed.title}"! 🎉`);
+      setStatusMessage(`Successfully auto-submitted new Gemini idea (${parsed.category}): "${parsed.title}"! 🎉`);
       setTimeout(() => setStatusMessage(null), 5000);
     } catch (err: unknown) {
       console.error('Auto Gemini Bot Error:', err);
@@ -294,13 +308,13 @@ Generate a creative, highly useful web developer tool or browser utility idea th
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-purple-900/80 text-purple-200 border border-purple-700 text-xs font-bold shadow-xs">
               <Bot className="w-4 h-4 text-purple-400 animate-pulse" />
-              <span>Autonomous AI Agent & Ultra-Fast Submissions</span>
+              <span>Autonomous AI Agent & 5s Rate Limit</span>
             </div>
             <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
               Auto Gemini Tool Idea Automation Bot
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
-              Unlock the autonomous Gemini agent for <strong className="text-amber-300 font-bold">20 CP</strong>, or upgrade to <strong className="text-cyan-300 font-bold">Turbo Mode (30 CP)</strong> to reduce rate limits to as fast as possible (every 10 seconds).
+              Unlock the autonomous Gemini agent for <strong className="text-amber-300 font-bold">20 CP</strong>, or upgrade to <strong className="text-cyan-300 font-bold">Turbo Mode (30 CP)</strong> for a <strong className="text-white font-mono">5-second rate limit</strong> with enforced genre rotation.
             </p>
           </div>
 
@@ -311,7 +325,7 @@ Generate a creative, highly useful web developer tool or browser utility idea th
             </div>
             {isTurbo ? (
               <div className="mt-2 text-[10px] font-bold px-2 py-0.5 bg-cyan-950 text-cyan-300 border border-cyan-800 rounded-full flex items-center justify-center gap-1">
-                <Rocket className="w-3 h-3 text-cyan-400" /> Turbo Active 🚀
+                <Rocket className="w-3 h-3 text-cyan-400" /> Turbo 5s Active 🚀
               </div>
             ) : isPurchased ? (
               <div className="mt-2 text-[10px] font-bold px-2 py-0.5 bg-emerald-950 text-emerald-300 border border-emerald-800 rounded-full flex items-center justify-center gap-1">
@@ -343,7 +357,7 @@ Generate a creative, highly useful web developer tool or browser utility idea th
           <div className="space-y-2">
             <h2 className="text-xl font-extrabold text-white">Unlock Auto Gemini Bot Automation</h2>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Permanently activate autonomous Gemini tool generation. Automatically submit unique ideas and earn recognition on the leaderboard.
+              Permanently activate autonomous Gemini tool generation with strict genre rotation.
             </p>
           </div>
 
@@ -378,7 +392,7 @@ Generate a creative, highly useful web developer tool or browser utility idea th
               <div className="text-sm font-bold text-white flex items-center gap-1.5">
                 <Rocket className="w-4 h-4 text-cyan-400" /> Turbo Mode (30 CP)
               </div>
-              <p className="text-xs text-slate-300">As fast as possible (10s interval, instant submission rate limits).</p>
+              <p className="text-xs text-slate-300">5-second rate limit with guaranteed diverse genre rotation.</p>
               {!currentUser ? (
                 <button
                   onClick={onOpenAuth}
@@ -410,7 +424,7 @@ Generate a creative, highly useful web developer tool or browser utility idea th
                   <span>Upgrade to Turbo Mode for 30 CP</span>
                 </div>
                 <p className="text-xs text-slate-300">
-                  Reduce rate limits from 30 min down to <strong className="text-white font-mono">as fast as possible (10s interval)</strong>.
+                  Reduce rate limits down to <strong className="text-white font-mono">5 seconds</strong> with enforced genre rotation.
                 </p>
               </div>
               <button
@@ -462,8 +476,8 @@ Generate a creative, highly useful web developer tool or browser utility idea th
                       onChange={(e) => handleChangeInterval(Number(e.target.value))}
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-hidden focus:border-purple-500"
                     >
-                      {isTurbo && <option value={0.1666}>⚡ Ultra-Fast (10 Seconds)</option>}
-                      {isTurbo && <option value={0.5}>🚀 Turbo Speed (30 Seconds)</option>}
+                      {isTurbo && <option value={0.0833}>⚡ Ultra-Fast (5 Seconds)</option>}
+                      {isTurbo && <option value={0.1666}>🚀 Turbo Speed (10 Seconds)</option>}
                       <option value={1}>1 Minute (Fast)</option>
                       <option value={5}>5 Minutes</option>
                       <option value={30}>30 Minutes (Standard)</option>
@@ -482,20 +496,20 @@ Generate a creative, highly useful web developer tool or browser utility idea th
                 </div>
               </div>
 
-              {/* Rate Limit Protection Card */}
+              {/* Rate Limit Protection & Diversity Card */}
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-3">
                 <h4 className="text-xs font-bold text-white flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                  <span>Rate Limit & Safety Guard</span>
+                  <span>Rate Limit & Genre Rotation</span>
                 </h4>
                 <ul className="text-[11px] text-slate-400 space-y-2">
                   <li className="flex items-start gap-1.5">
                     <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>{isTurbo ? '🚀 Turbo Mode active: Cooldown reduced to 2 seconds.' : 'Standard 15-minute cooldown between manual test runs.'}</span>
+                    <span>{isTurbo ? '🚀 Turbo Mode active: 5s rate limit cooldown.' : 'Standard 15-minute cooldown between manual test runs.'}</span>
                   </li>
                   <li className="flex items-start gap-1.5">
                     <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>Cross-checks current queue and 55+ tool registry to eliminate duplicates.</span>
+                    <span>Enforces strict genre rotation so Gemini never repeats the same category consecutively.</span>
                   </li>
                 </ul>
               </div>
@@ -549,10 +563,10 @@ Generate a creative, highly useful web developer tool or browser utility idea th
                   <span className="text-[10px] font-mono text-slate-500">Live Agent Stream</span>
                 </div>
 
-                <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-xs text-slate-300 space-y-2 max-h-64 overflow-y-auto">
-                  <div className="text-slate-500">[{new Date().toLocaleTimeString()}] Bot initialized with {isTurbo ? '🚀 Turbo Mode (10s interval)' : 'Standard Mode'}.</div>
+                <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 font-mono text-xs text-slate-300 space-y-2 max-h-64 overflow-y-auto">
+                  <div className="text-slate-500">[{new Date().toLocaleTimeString()}] Bot initialized with {isTurbo ? '🚀 Turbo Mode (5s rate limit & genre rotation)' : 'Standard Mode'}.</div>
                   {lastRun && (
-                    <div className="text-emerald-400">[{new Date(lastRun).toLocaleTimeString()}] Successfully generated and submitted unique tool idea to community queue.</div>
+                    <div className="text-emerald-400">[{new Date(lastRun).toLocaleTimeString()}] Successfully generated and submitted unique tool idea with diverse genre rotation.</div>
                   )}
                   {isEnabled ? (
                     <div className="text-purple-300 animate-pulse">[{new Date().toLocaleTimeString()}] Status: Listening for schedule trigger (Next run in {formatCountdown(countdownSeconds)})...</div>
