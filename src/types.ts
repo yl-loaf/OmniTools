@@ -112,6 +112,7 @@ export interface UserProfile {
   autoGeminiIntervalMinutes?: number;
   autoGeminiLastRun?: string;
   autoGeminiSubmittedCount?: number;
+  autoGeminiTurboPurchased?: boolean;
 }
 
 export interface CompletionStats {

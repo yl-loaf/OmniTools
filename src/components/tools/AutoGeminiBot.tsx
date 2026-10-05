@@ -17,7 +17,9 @@ import {
   Terminal,
   Activity,
   Flame,
-  Check
+  Check,
+  Gauge,
+  Rocket
 } from 'lucide-react';
 
 interface AutoGeminiBotProps {
@@ -36,13 +38,15 @@ export const AutoGeminiBot: React.FC<AutoGeminiBotProps> = ({
   onOpenAuth,
 }) => {
   const [isPurchasing, setIsPurchasing] = useState(false);
+  const [isPurchasingTurbo, setIsPurchasingTurbo] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [countdownSeconds, setCountdownSeconds] = useState<number>(0);
 
   const isPurchased = currentUser?.autoGeminiPurchased === true;
+  const isTurbo = currentUser?.autoGeminiTurboPurchased === true;
   const isEnabled = currentUser?.autoGeminiEnabled === true;
-  const intervalMinutes = currentUser?.autoGeminiIntervalMinutes || 60; // default 1 hour
+  const intervalSeconds = currentUser?.autoGeminiIntervalMinutes ? currentUser.autoGeminiIntervalMinutes * 60 : (isTurbo ? 10 : 3600);
   const lastRun = currentUser?.autoGeminiLastRun;
   const submittedCount = currentUser?.autoGeminiSubmittedCount || 0;
 
@@ -53,7 +57,7 @@ export const AutoGeminiBot: React.FC<AutoGeminiBotProps> = ({
       return;
     }
 
-    const intervalMs = intervalMinutes * 60 * 1000;
+    const intervalMs = intervalSeconds * 1000;
     const lastRunTime = new Date(lastRun).getTime();
     const nextRunTime = lastRunTime + intervalMs;
 
@@ -69,9 +73,9 @@ export const AutoGeminiBot: React.FC<AutoGeminiBotProps> = ({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isPurchased, isEnabled, lastRun, intervalMinutes, currentUser]);
+  }, [isPurchased, isEnabled, lastRun, intervalSeconds, currentUser]);
 
-  // Handle purchasing for 20 CP
+  // Handle purchasing base bot for 20 CP
   const handlePurchaseBot = () => {
     if (!currentUser) {
       onOpenAuth();
@@ -80,7 +84,7 @@ export const AutoGeminiBot: React.FC<AutoGeminiBotProps> = ({
 
     const cost = 20;
     if (currentUser.contributionPoints < cost) {
-      alert(`Insufficient Contribution Points! You have ${currentUser.contributionPoints} CP, but need ${cost} CP to unlock the Auto Gemini Bot automation.`);
+      alert(`Insufficient Contribution Points! You have ${currentUser.contributionPoints} CP, but need ${cost} CP to unlock the Auto Gemini Bot.`);
       return;
     }
 
@@ -92,7 +96,7 @@ export const AutoGeminiBot: React.FC<AutoGeminiBotProps> = ({
         contributionPoints: newPoints,
         autoGeminiPurchased: true,
         autoGeminiEnabled: true,
-        autoGeminiIntervalMinutes: 60, // default 1 hour
+        autoGeminiIntervalMinutes: 60,
         autoGeminiLastRun: new Date().toISOString(),
         autoGeminiSubmittedCount: 0,
         updatedAt: new Date().toISOString(),
@@ -102,6 +106,40 @@ export const AutoGeminiBot: React.FC<AutoGeminiBotProps> = ({
       setIsPurchasing(false);
       setStatusMessage('Successfully unlocked Auto Gemini Tool Idea Automation! 🤖✨');
       setTimeout(() => setStatusMessage(null), 5000);
+    }, 500);
+  };
+
+  // Handle purchasing Turbo Mode for 30 CP (as fast as possible)
+  const handlePurchaseTurbo = () => {
+    if (!currentUser) {
+      onOpenAuth();
+      return;
+    }
+
+    const cost = 30;
+    if (currentUser.contributionPoints < cost) {
+      alert(`Insufficient Contribution Points! You have ${currentUser.contributionPoints} CP, but need ${cost} CP for Turbo Mode.`);
+      return;
+    }
+
+    setIsPurchasingTurbo(true);
+    setTimeout(() => {
+      const newPoints = currentUser.contributionPoints - cost;
+      const updated: UserProfile = {
+        ...currentUser,
+        contributionPoints: newPoints,
+        autoGeminiPurchased: true,
+        autoGeminiTurboPurchased: true,
+        autoGeminiEnabled: true,
+        autoGeminiIntervalMinutes: 0.1666, // 10 seconds
+        autoGeminiLastRun: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      onUpdateUser(updated);
+      setIsPurchasingTurbo(false);
+      setStatusMessage('🚀 Turbo Mode unlocked! Rate limits reduced to as fast as possible (10s interval).');
+      setTimeout(() => setStatusMessage(null), 6000);
     }, 500);
   };
 
@@ -117,7 +155,7 @@ export const AutoGeminiBot: React.FC<AutoGeminiBotProps> = ({
     onUpdateUser(updated);
   };
 
-  // Change interval
+  // Change interval (minutes)
   const handleChangeInterval = (mins: number) => {
     if (!currentUser || !isPurchased) return;
 
@@ -133,17 +171,19 @@ export const AutoGeminiBot: React.FC<AutoGeminiBotProps> = ({
   const handleRunAutonomousBot = async (isBackgroundRun = false) => {
     if (!currentUser || !isPurchased) return;
 
-    // Rate Limit Guard: Minimum 15 minutes between runs
+    // Rate Limit Guard: Turbo mode allows 2 seconds cooldown, standard allows 15 mins
+    const cooldownSecs = isTurbo ? 2 : 900;
     if (lastRun && !isBackgroundRun) {
-      const elapsedMins = (Date.now() - new Date(lastRun).getTime()) / (1000 * 60);
-      if (elapsedMins < 15) {
-        alert(`Rate limit protection active: Please wait at least ${Math.ceil(15 - elapsedMins)} more minutes before manually triggering again.`);
+      const elapsedSecs = (Date.now() - new Date(lastRun).getTime()) / 1000;
+      if (elapsedSecs < cooldownSecs) {
+        const waitTime = Math.ceil(cooldownSecs - elapsedSecs);
+        alert(`Rate limit protection active: Please wait ${waitTime}s before triggering again.`);
         return;
       }
     }
 
     setIsGenerating(true);
-    setStatusMessage('🤖 Autonomous Bot calling Gemini API to generate unique tool idea...');
+    setStatusMessage(isTurbo ? '🚀 [Turbo] Autonomous Bot generating ultra-fast tool idea...' : '🤖 Autonomous Bot calling Gemini API...');
 
     try {
       const apiKey = localStorage.getItem('omnitools_gemini_key') || import.meta.env.VITE_GEMINI_API_KEY;
@@ -206,7 +246,7 @@ Generate a creative, highly useful web developer tool or browser utility idea th
       // Automatically submit request
       onSubmitRequest({
         title: parsed.title,
-        description: `${parsed.description} [Generated autonomously by Auto Gemini Bot 🤖]`,
+        description: `${parsed.description} [Generated autonomously by Auto Gemini Bot 🤖${isTurbo ? ' 🚀 Turbo' : ''}]`,
         category: (parsed.category as RequestCategory) || 'developer',
         status: 'pending',
         authorId: currentUser.uid,
@@ -226,7 +266,7 @@ Generate a creative, highly useful web developer tool or browser utility idea th
 
       onUpdateUser(updatedUser);
       setStatusMessage(`Successfully auto-submitted new Gemini idea: "${parsed.title}"! 🎉`);
-      setTimeout(() => setStatusMessage(null), 6000);
+      setTimeout(() => setStatusMessage(null), 5000);
     } catch (err: unknown) {
       console.error('Auto Gemini Bot Error:', err);
       const errMsg = err instanceof Error ? err.message : 'Unknown error';
@@ -254,13 +294,13 @@ Generate a creative, highly useful web developer tool or browser utility idea th
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-purple-900/80 text-purple-200 border border-purple-700 text-xs font-bold shadow-xs">
               <Bot className="w-4 h-4 text-purple-400 animate-pulse" />
-              <span>Autonomous AI Agent & Rate-Limited Submissions</span>
+              <span>Autonomous AI Agent & Ultra-Fast Submissions</span>
             </div>
             <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
               Auto Gemini Tool Idea Automation Bot
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
-              Unlock the autonomous Gemini agent for <strong className="text-amber-300 font-bold">20 CP</strong>. The bot periodically generates brilliant, unique developer tool ideas using Gemini and automatically submits them to the community queue while strictly protecting against rate limits and duplicates.
+              Unlock the autonomous Gemini agent for <strong className="text-amber-300 font-bold">20 CP</strong>, or upgrade to <strong className="text-cyan-300 font-bold">Turbo Mode (30 CP)</strong> to reduce rate limits to as fast as possible (every 10 seconds).
             </p>
           </div>
 
@@ -269,13 +309,17 @@ Generate a creative, highly useful web developer tool or browser utility idea th
             <div className="text-2xl font-black text-amber-400 font-mono mt-0.5">
               {currentUser?.contributionPoints ?? 0} CP
             </div>
-            {isPurchased ? (
+            {isTurbo ? (
+              <div className="mt-2 text-[10px] font-bold px-2 py-0.5 bg-cyan-950 text-cyan-300 border border-cyan-800 rounded-full flex items-center justify-center gap-1">
+                <Rocket className="w-3 h-3 text-cyan-400" /> Turbo Active 🚀
+              </div>
+            ) : isPurchased ? (
               <div className="mt-2 text-[10px] font-bold px-2 py-0.5 bg-emerald-950 text-emerald-300 border border-emerald-800 rounded-full flex items-center justify-center gap-1">
-                <CheckCircle2 className="w-3 h-3" /> Unlocked & Owned
+                <CheckCircle2 className="w-3 h-3" /> Standard Unlocked
               </div>
             ) : (
               <div className="mt-2 text-[10px] font-bold px-2 py-0.5 bg-purple-950 text-purple-300 border border-purple-800 rounded-full flex items-center justify-center gap-1">
-                <Lock className="w-3 h-3" /> Costs 20 CP
+                <Lock className="w-3 h-3" /> Locked
               </div>
             )}
           </div>
@@ -299,189 +343,223 @@ Generate a creative, highly useful web developer tool or browser utility idea th
           <div className="space-y-2">
             <h2 className="text-xl font-extrabold text-white">Unlock Auto Gemini Bot Automation</h2>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Permanently activate autonomous Gemini tool generation. Your bot will run in the background according to your configured schedule, submitting unique ideas and earning you recognition on the leaderboard.
+              Permanently activate autonomous Gemini tool generation. Automatically submit unique ideas and earn recognition on the leaderboard.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left py-2">
-            <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
-              <div className="text-xs font-bold text-white flex items-center gap-1.5">
-                <Zap className="w-3.5 h-3.5 text-amber-400" /> 20 CP Cost
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left py-2">
+            <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl space-y-2">
+              <div className="text-sm font-bold text-white flex items-center gap-1.5">
+                <Zap className="w-4 h-4 text-amber-400" /> Standard Bot (20 CP)
               </div>
-              <p className="text-[11px] text-slate-400">One-time purchase using your earned contribution points.</p>
+              <p className="text-xs text-slate-400">Standard scheduled generation (1 hour interval default).</p>
+              {!currentUser ? (
+                <button
+                  onClick={onOpenAuth}
+                  className="w-full mt-2 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition"
+                >
+                  Sign In
+                </button>
+              ) : (
+                <button
+                  onClick={handlePurchaseBot}
+                  disabled={isPurchasing || currentUser.contributionPoints < 20}
+                  className="w-full mt-2 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition disabled:opacity-50 cursor-pointer"
+                >
+                  {isPurchasing ? 'Unlocking...' : 'Unlock for 20 CP'}
+                </button>
+              )}
             </div>
-            <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
-              <div className="text-xs font-bold text-white flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Rate Limit Safe
+
+            <div className="p-4 bg-gradient-to-b from-cyan-950/40 to-slate-950 border border-cyan-800/60 rounded-2xl space-y-2 relative overflow-hidden">
+              <div className="absolute top-2 right-2 px-2 py-0.5 rounded bg-cyan-900 text-cyan-200 text-[10px] font-bold">
+                RECOMMENDED
               </div>
-              <p className="text-[11px] text-slate-400">Built-in cooldown guards and exponential backoff protection.</p>
-            </div>
-            <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
-              <div className="text-xs font-bold text-white flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-purple-400" /> Zero Duplicates
+              <div className="text-sm font-bold text-white flex items-center gap-1.5">
+                <Rocket className="w-4 h-4 text-cyan-400" /> Turbo Mode (30 CP)
               </div>
-              <p className="text-[11px] text-slate-400">Automatically cross-checks existing queue and registry.</p>
+              <p className="text-xs text-slate-300">As fast as possible (10s interval, instant submission rate limits).</p>
+              {!currentUser ? (
+                <button
+                  onClick={onOpenAuth}
+                  className="w-full mt-2 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition"
+                >
+                  Sign In
+                </button>
+              ) : (
+                <button
+                  onClick={handlePurchaseTurbo}
+                  disabled={isPurchasingTurbo || currentUser.contributionPoints < 30}
+                  className="w-full mt-2 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:opacity-90 text-white rounded-xl text-xs font-bold transition shadow-md shadow-cyan-500/20 disabled:opacity-50 cursor-pointer"
+                >
+                  {isPurchasingTurbo ? 'Unlocking Turbo...' : 'Unlock Turbo for 30 CP'}
+                </button>
+              )}
             </div>
           </div>
-
-          {!currentUser ? (
-            <button
-              onClick={onOpenAuth}
-              className="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-blue-500/20"
-            >
-              Sign In with Google to Unlock
-            </button>
-          ) : (
-            <button
-              onClick={handlePurchaseBot}
-              disabled={isPurchasing || (currentUser.contributionPoints < 20)}
-              className="w-full py-3.5 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:opacity-90 text-white rounded-xl text-xs sm:text-sm font-extrabold transition shadow-lg shadow-purple-600/30 disabled:opacity-50 cursor-pointer"
-            >
-              {isPurchasing ? 'Unlocking Bot...' : 'Unlock Auto Gemini Bot for 20 CP'}
-            </button>
-          )}
         </div>
       ) : (
         /* Control Panel & Dashboard */
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column: Settings & Toggles */}
-          <div className="lg:col-span-1 space-y-6">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <Bot className="w-4 h-4 text-purple-400" />
-                  <span>Bot Controls</span>
-                </h3>
-                <span className={`text-[10px] font-mono px-2 py-0.5 rounded uppercase font-bold ${
-                  isEnabled ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-slate-800 text-slate-400'
-                }`}>
-                  {isEnabled ? 'Active 🟢' : 'Paused ⏸️'}
-                </span>
+        <div className="space-y-6">
+          {/* Turbo Upgrade Banner if standard purchased */}
+          {!isTurbo && (
+            <div className="bg-gradient-to-r from-cyan-950/80 via-blue-950/80 to-slate-900 border border-cyan-800/80 rounded-2xl p-6 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-cyan-300 font-bold text-sm">
+                  <Rocket className="w-4 h-4 text-cyan-400 animate-bounce" />
+                  <span>Upgrade to Turbo Mode for 30 CP</span>
+                </div>
+                <p className="text-xs text-slate-300">
+                  Reduce rate limits from 30 min down to <strong className="text-white font-mono">as fast as possible (10s interval)</strong>.
+                </p>
               </div>
+              <button
+                onClick={handlePurchaseTurbo}
+                disabled={isPurchasingTurbo || (currentUser?.contributionPoints ?? 0) < 30}
+                className="px-5 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:opacity-90 text-white rounded-xl text-xs font-extrabold transition shadow-lg shadow-cyan-500/20 disabled:opacity-50 shrink-0 cursor-pointer"
+              >
+                {isPurchasingTurbo ? 'Upgrading...' : '🚀 Upgrade to Turbo (30 CP)'}
+              </button>
+            </div>
+          )}
 
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-3.5 bg-slate-950 border border-slate-800 rounded-xl">
-                  <div>
-                    <div className="text-xs font-bold text-white">Enable Automation</div>
-                    <div className="text-[10px] text-slate-400 mt-0.5">Allow bot to run on schedule</div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column: Settings & Toggles */}
+            <div className="lg:col-span-1 space-y-6">
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <Bot className="w-4 h-4 text-purple-400" />
+                    <span>Bot Controls</span>
+                  </h3>
+                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded uppercase font-bold ${
+                    isEnabled ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-slate-800 text-slate-400'
+                  }`}>
+                    {isEnabled ? 'Active 🟢' : 'Paused ⏸️'}
+                  </span>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3.5 bg-slate-950 border border-slate-800 rounded-xl">
+                    <div>
+                      <div className="text-xs font-bold text-white">Enable Automation</div>
+                      <div className="text-[10px] text-slate-400 mt-0.5">Allow bot to run on schedule</div>
+                    </div>
+                    <button
+                      onClick={handleToggleEnabled}
+                      className={`w-12 h-6 flex items-center rounded-full p-1 transition ${
+                        isEnabled ? 'bg-emerald-600 justify-end' : 'bg-slate-700 justify-start'
+                      }`}
+                    >
+                      <div className="w-4 h-4 rounded-full bg-white shadow-md" />
+                    </button>
                   </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-slate-300">Run Frequency / Speed</label>
+                    <select
+                      value={intervalSeconds / 60}
+                      onChange={(e) => handleChangeInterval(Number(e.target.value))}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-hidden focus:border-purple-500"
+                    >
+                      {isTurbo && <option value={0.1666}>⚡ Ultra-Fast (10 Seconds)</option>}
+                      {isTurbo && <option value={0.5}>🚀 Turbo Speed (30 Seconds)</option>}
+                      <option value={1}>1 Minute (Fast)</option>
+                      <option value={5}>5 Minutes</option>
+                      <option value={30}>30 Minutes (Standard)</option>
+                      <option value={60}>1 Hour</option>
+                    </select>
+                  </div>
+
                   <button
-                    onClick={handleToggleEnabled}
-                    className={`w-12 h-6 flex items-center rounded-full p-1 transition ${
-                      isEnabled ? 'bg-emerald-600 justify-end' : 'bg-slate-700 justify-start'
-                    }`}
+                    onClick={() => handleRunAutonomousBot(false)}
+                    disabled={isGenerating}
+                    className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-md shadow-purple-600/20 disabled:opacity-50 cursor-pointer"
                   >
-                    <div className="w-4 h-4 rounded-full bg-white shadow-md" />
+                    <Play className={`w-3.5 h-3.5 fill-white ${isGenerating ? 'animate-spin' : ''}`} />
+                    <span>{isGenerating ? 'Generating Idea...' : '▶ Run Bot Now (Test Trigger)'}</span>
                   </button>
                 </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-300">Run Frequency / Interval</label>
-                  <select
-                    value={intervalMinutes}
-                    onChange={(e) => handleChangeInterval(Number(e.target.value))}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-hidden focus:border-purple-500"
-                  >
-                    <option value={30}>Every 30 Minutes</option>
-                    <option value={60}>Every 1 Hour (Recommended)</option>
-                    <option value={240}>Every 4 Hours</option>
-                    <option value={720}>Every 12 Hours</option>
-                    <option value={1440}>Every 24 Hours</option>
-                  </select>
-                </div>
-
-                <button
-                  onClick={() => handleRunAutonomousBot(false)}
-                  disabled={isGenerating}
-                  className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-md shadow-purple-600/20 disabled:opacity-50 cursor-pointer"
-                >
-                  <Play className={`w-3.5 h-3.5 fill-white ${isGenerating ? 'animate-spin' : ''}`} />
-                  <span>{isGenerating ? 'Running Gemini Bot...' : '▶ Run Bot Now (Test Trigger)'}</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Rate Limit Protection Card */}
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-3">
-              <h4 className="text-xs font-bold text-white flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>Rate Limit & Safety Guard</span>
-              </h4>
-              <ul className="text-[11px] text-slate-400 space-y-2">
-                <li className="flex items-start gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                  <span>Enforces a minimum 15-minute cooldown between manual test triggers.</span>
-                </li>
-                <li className="flex items-start gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                  <span>Cross-checks current queue and 55+ tool registry to eliminate duplicates.</span>
-                </li>
-                <li className="flex items-start gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                  <span>Uses high-efficiency <code className="text-purple-300 font-mono">gemini-3.5-flash-lite</code> to minimize quota consumption.</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Right Column: Status Metrics & Activity Log */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-purple-950 text-purple-400 border border-purple-800/60">
-                  <Sparkles className="w-6 h-6" />
-                </div>
-                <div>
-                  <div className="text-2xl font-black text-white font-mono">{submittedCount}</div>
-                  <div className="text-xs text-slate-400 mt-0.5">Ideas Auto-Submitted</div>
-                </div>
               </div>
 
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-cyan-950 text-cyan-400 border border-cyan-800/60">
-                  <Clock className="w-6 h-6" />
-                </div>
-                <div>
-                  <div className="text-xl font-black text-white font-mono">
-                    {isEnabled ? formatCountdown(countdownSeconds) : 'Paused'}
-                  </div>
-                  <div className="text-xs text-slate-400 mt-0.5">Next Run Countdown</div>
-                </div>
-              </div>
-
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-amber-950 text-amber-400 border border-amber-800/60">
-                  <Activity className="w-6 h-6" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-white truncate max-w-[120px]">
-                    {lastRun ? new Date(lastRun).toLocaleTimeString() : 'Never'}
-                  </div>
-                  <div className="text-xs text-slate-400 mt-0.5">Last Bot Execution</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Live Bot Execution Log */}
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                  <Terminal className="w-4 h-4 text-blue-400" />
-                  <span>Autonomous Bot Execution Log</span>
+              {/* Rate Limit Protection Card */}
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-3">
+                <h4 className="text-xs font-bold text-white flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  <span>Rate Limit & Safety Guard</span>
                 </h4>
-                <span className="text-[10px] font-mono text-slate-500">Live Agent Stream</span>
+                <ul className="text-[11px] text-slate-400 space-y-2">
+                  <li className="flex items-start gap-1.5">
+                    <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                    <span>{isTurbo ? '🚀 Turbo Mode active: Cooldown reduced to 2 seconds.' : 'Standard 15-minute cooldown between manual test runs.'}</span>
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                    <span>Cross-checks current queue and 55+ tool registry to eliminate duplicates.</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Right Column: Status Metrics & Activity Log */}
+            <div className="lg:col-span-2 space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-center gap-4">
+                  <div className="p-3 rounded-xl bg-purple-950 text-purple-400 border border-purple-800/60">
+                    <Sparkles className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <div className="text-2xl font-black text-white font-mono">{submittedCount}</div>
+                    <div className="text-xs text-slate-400 mt-0.5">Ideas Auto-Submitted</div>
+                  </div>
+                </div>
+
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-center gap-4">
+                  <div className="p-3 rounded-xl bg-cyan-950 text-cyan-400 border border-cyan-800/60">
+                    <Clock className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <div className="text-xl font-black text-white font-mono">
+                      {isEnabled ? formatCountdown(countdownSeconds) : 'Paused'}
+                    </div>
+                    <div className="text-xs text-slate-400 mt-0.5">Next Run Countdown</div>
+                  </div>
+                </div>
+
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-center gap-4">
+                  <div className="p-3 rounded-xl bg-amber-950 text-amber-400 border border-amber-800/60">
+                    <Activity className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-white truncate max-w-[120px]">
+                      {lastRun ? new Date(lastRun).toLocaleTimeString() : 'Never'}
+                    </div>
+                    <div className="text-xs text-slate-400 mt-0.5">Last Bot Execution</div>
+                  </div>
+                </div>
               </div>
 
-              <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-xs text-slate-300 space-y-2 max-h-64 overflow-y-auto">
-                <div className="text-slate-500">[{new Date().toLocaleTimeString()}] Bot initialized and connected to Gemini API proxy.</div>
-                {lastRun && (
-                  <div className="text-emerald-400">[{new Date(lastRun).toLocaleTimeString()}] Successfully generated and submitted unique tool idea to community queue.</div>
-                )}
-                {isEnabled ? (
-                  <div className="text-purple-300 animate-pulse">[{new Date().toLocaleTimeString()}] Status: Listening for schedule trigger (Next run in {formatCountdown(countdownSeconds)})...</div>
-                ) : (
-                  <div className="text-amber-400">[{new Date().toLocaleTimeString()}] Status: Automation is currently paused. Toggle on to begin background execution.</div>
-                )}
+              {/* Live Bot Execution Log */}
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                    <Terminal className="w-4 h-4 text-blue-400" />
+                    <span>Autonomous Bot Execution Log</span>
+                  </h4>
+                  <span className="text-[10px] font-mono text-slate-500">Live Agent Stream</span>
+                </div>
+
+                <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-xs text-slate-300 space-y-2 max-h-64 overflow-y-auto">
+                  <div className="text-slate-500">[{new Date().toLocaleTimeString()}] Bot initialized with {isTurbo ? '🚀 Turbo Mode (10s interval)' : 'Standard Mode'}.</div>
+                  {lastRun && (
+                    <div className="text-emerald-400">[{new Date(lastRun).toLocaleTimeString()}] Successfully generated and submitted unique tool idea to community queue.</div>
+                  )}
+                  {isEnabled ? (
+                    <div className="text-purple-300 animate-pulse">[{new Date().toLocaleTimeString()}] Status: Listening for schedule trigger (Next run in {formatCountdown(countdownSeconds)})...</div>
+                  ) : (
+                    <div className="text-amber-400">[{new Date().toLocaleTimeString()}] Status: Automation is currently paused. Toggle on to begin background execution.</div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
