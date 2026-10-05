@@ -116,33 +116,59 @@ export const ToolRequestHub: React.FC<ToolRequestHubProps> = ({
     setIsGeneratingIdea(true);
     try {
       const apiKey = localStorage.getItem('omnitools_gemini_key') || import.meta.env.VITE_GEMINI_API_KEY;
-      if (apiKey) {
-        const model = localStorage.getItem('omnitools_gemini_model') || 'gemini-2.5-flash';
-        const ai = new GoogleGenAI({ apiKey });
-        const res = await ai.models.generateContent({
+      if (!apiKey) {
+        alert('Please configure your Gemini API key in Workspace Settings (⚙️ Settings -> Gemini AI) to use live AI idea generation.');
+        setIsGeneratingIdea(false);
+        const randomIdea = GEMINI_IDEA_BANK[Math.floor(Math.random() * GEMINI_IDEA_BANK.length)];
+        setTitle(randomIdea.title);
+        setDescription(randomIdea.description);
+        setCategory(randomIdea.category);
+        return;
+      }
+
+      const model = localStorage.getItem('omnitools_gemini_model') || 'gemini-2.5-flash';
+      const ai = new GoogleGenAI({ apiKey });
+      
+      let res;
+      try {
+        res = await ai.models.generateContent({
           model,
           contents: 'Generate a creative, highly useful web developer tool or browser utility idea for an online productivity suite. Return ONLY valid JSON with keys: title (string, short punchy name), description (string, 2 sentences explaining its value), category (one of: productivity, math, text, conversion, developer, utility, other).',
         });
-        const text = res.text || '';
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const parsed = JSON.parse(jsonMatch[0]);
-          if (parsed.title && parsed.description) {
-            setTitle(parsed.title);
-            setDescription(parsed.description);
-            if (parsed.category) setCategory(parsed.category as RequestCategory);
-            setIsGeneratingIdea(false);
-            return;
-          }
+      } catch (firstErr) {
+        // Fallback model retry if primary model name fails
+        console.warn('Primary Gemini model failed, retrying with gemini-1.5-flash:', firstErr);
+        res = await ai.models.generateContent({
+          model: 'gemini-1.5-flash',
+          contents: 'Generate a creative, highly useful web developer tool or browser utility idea for an online productivity suite. Return ONLY valid JSON with keys: title (string, short punchy name), description (string, 2 sentences explaining its value), category (one of: productivity, math, text, conversion, developer, utility, other).',
+        });
+      }
+
+      const text = res.text || '';
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        if (parsed.title && parsed.description) {
+          setTitle(parsed.title);
+          setDescription(parsed.description);
+          if (parsed.category) setCategory(parsed.category as RequestCategory);
+          setIsGeneratingIdea(false);
+          return;
         }
       }
-    } catch {}
-
-    const randomIdea = GEMINI_IDEA_BANK[Math.floor(Math.random() * GEMINI_IDEA_BANK.length)];
-    setTitle(randomIdea.title);
-    setDescription(randomIdea.description);
-    setCategory(randomIdea.category);
-    setIsGeneratingIdea(false);
+      throw new Error('Could not parse JSON from Gemini response.');
+    } catch (err: unknown) {
+      console.error('Gemini AI Generation Error:', err);
+      const errMessage = err instanceof Error ? err.message : 'Unknown error';
+      alert(`Gemini AI generation failed: ${errMessage}\n\nFalling back to idea bank template.`);
+      
+      const randomIdea = GEMINI_IDEA_BANK[Math.floor(Math.random() * GEMINI_IDEA_BANK.length)];
+      setTitle(randomIdea.title);
+      setDescription(randomIdea.description);
+      setCategory(randomIdea.category);
+    } finally {
+      setIsGeneratingIdea(false);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
