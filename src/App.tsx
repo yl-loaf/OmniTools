@@ -89,6 +89,18 @@ import EventFlowDebugger from './components/tools/EventFlowDebugger';
 import NoAiSearch from './components/tools/NoAiSearch';
 import CssStackingVisualizer from './components/tools/CssStackingVisualizer';
 import { AutoGeminiBot } from './components/tools/AutoGeminiBot';
+import { ColorHarmonizerTool } from './components/tools/ColorHarmonizerTool';
+import { SubnetVisualizerTool } from './components/tools/SubnetVisualizerTool';
+import { TextDiffRedactorTool } from './components/tools/TextDiffRedactorTool';
+import { SvgMorphTimelineTool } from './components/tools/SvgMorphTimelineTool';
+import { SvgPathCleanerTool } from './components/tools/SvgPathCleanerTool';
+import { MacroNutrientPlannerTool } from './components/tools/MacroNutrientPlannerTool';
+import { SqlVulnSandboxTool } from './components/tools/SqlVulnSandboxTool';
+import { PasswordEntropyAuditorTool } from './components/tools/PasswordEntropyAuditorTool';
+import { ChiptuneSynthTool } from './components/tools/ChiptuneSynthTool';
+import { MarkdownTableCsvTool } from './components/tools/MarkdownTableCsvTool';
+import { PantryExpiryAuditorTool } from './components/tools/PantryExpiryAuditorTool';
+import { IsometricPixelStudioTool } from './components/tools/IsometricPixelStudioTool';
 
 // Daily Life & 30+ Features Suites
 import { HealthFitnessSuite } from './components/tools/daily/HealthFitnessSuite';
@@ -1377,6 +1389,18 @@ export default function App() {
         {activeTab === 'event-flow-debugger' && <EventFlowDebugger />}
         {activeTab === 'no-ai-search' && <NoAiSearch />}
         {activeTab === 'css-stacking-visualizer' && <CssStackingVisualizer />}
+        {activeTab === 'color-harmonizer' && <ColorHarmonizerTool />}
+        {activeTab === 'subnet-visualizer' && <SubnetVisualizerTool />}
+        {activeTab === 'text-diff-redactor' && <TextDiffRedactorTool />}
+        {activeTab === 'svg-morph-timeline' && <SvgMorphTimelineTool />}
+        {activeTab === 'svg-path-cleaner' && <SvgPathCleanerTool />}
+        {activeTab === 'macro-nutrient-planner' && <MacroNutrientPlannerTool />}
+        {activeTab === 'sql-vuln-sandbox' && <SqlVulnSandboxTool />}
+        {activeTab === 'password-entropy-auditor' && <PasswordEntropyAuditorTool />}
+        {activeTab === 'chiptune-synth' && <ChiptuneSynthTool />}
+        {activeTab === 'markdown-table-csv' && <MarkdownTableCsvTool />}
+        {activeTab === 'pantry-expiry-auditor' && <PantryExpiryAuditorTool />}
+        {activeTab === 'isometric-pixel-studio' && <IsometricPixelStudioTool />}
         {activeTab === 'auto-gemini-bot' && (
           <AutoGeminiBot
             currentUser={currentUser}
