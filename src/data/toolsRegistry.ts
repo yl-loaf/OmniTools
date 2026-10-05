@@ -34,7 +34,8 @@ import {
   Eye,
   RefreshCcw,
   Grid3X3,
-  GitGraph
+  GitGraph,
+  Sigma
 } from 'lucide-react';
 import { TOP_CONVERSION_PERMUTATIONS } from './fileConversions';
 import { ThemeConfig, ThemeId } from '../types';
@@ -290,14 +291,14 @@ export const TOOLS_REGISTRY: ToolMeta[] = [
     keywords: ['dom', 'diff', 'snapshot', 'responsive', 'layout shifts'],
   },
   {
-    id: 'data-sculptor',
-    name: 'Data Sculptor',
-    shortLabel: 'Data Sculptor',
-    desc: 'Intelligently generates dynamic mock data based on existing API responses or user-defined schemas without a live backend',
-    icon: Database,
-    category: 'Developer',
+    id: 'graphing-calculator',
+    name: 'Omni Graphing Calculator',
+    shortLabel: 'Graphing Calc',
+    desc: 'Interactive graphing calculator with real-time function plotting, dynamic variables, and coordinate system exploration.',
+    icon: Sigma,
+    category: 'Math & Finance',
     badge: 'New',
-    keywords: ['mock data', 'generator', 'sculptor', 'api simulation', 'fake data', 'fixtures'],
+    keywords: ['graph', 'calculator', 'plotting', 'math', 'function', 'algebra'],
   },
   {
     id: 'css-snapshot-diff',

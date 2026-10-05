@@ -72,6 +72,7 @@ import { StyleSyncVars } from './components/tools/StyleSyncVars';
 import { DevLinkSnippets } from './components/tools/DevLinkSnippets';
 import { CodeLensNavigatorTool } from './components/tools/CodeLensNavigatorTool';
 import { A11yLensLive } from './components/tools/A11yLensLive';
+import GraphingCalculator from './components/tools/GraphingCalculator';
 import RegexPlayground from './components/tools/RegexPlayground';
 import PerfGuard from './components/tools/PerfGuard';
 import MockRequest from './components/tools/MockRequest';
@@ -1328,6 +1329,7 @@ export default function App() {
         {activeTab === 'devlink-snippets' && <DevLinkSnippets />}
         {activeTab === 'codelens-navigator' && <CodeLensNavigatorTool />}
         {activeTab === 'a11ylens-live' && <A11yLensLive />}
+        {activeTab === 'graphing-calculator' && <GraphingCalculator />}
         {activeTab === 'regex-playground' && <RegexPlayground />}
         {activeTab === 'perf-guard' && <PerfGuard />}
         {activeTab === 'mock-request' && <MockRequest />}
