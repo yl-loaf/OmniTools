@@ -120,7 +120,14 @@ export const ToolRequestHub: React.FC<ToolRequestHubProps> = ({
       if (!apiKey) {
         alert('Please configure your Gemini API key in Workspace Settings (⚙️ Settings -> Gemini AI) to use live AI idea generation.');
         setIsGeneratingIdea(false);
-        const randomIdea = GEMINI_IDEA_BANK[Math.floor(Math.random() * GEMINI_IDEA_BANK.length)];
+        const availableIdeaBank = GEMINI_IDEA_BANK.filter(idea => {
+          const titleLower = idea.title.toLowerCase();
+          const existsInQueue = requests.some(r => r.title.toLowerCase() === titleLower || titleLower.includes(r.title.toLowerCase()));
+          const existsInRegistry = TOOLS_REGISTRY.some(t => t.name.toLowerCase() === titleLower || titleLower.includes(t.name.toLowerCase()));
+          return !existsInQueue && !existsInRegistry;
+        });
+        const ideaPool = availableIdeaBank.length > 0 ? availableIdeaBank : GEMINI_IDEA_BANK;
+        const randomIdea = ideaPool[Math.floor(Math.random() * ideaPool.length)];
         setTitle(randomIdea.title);
         setDescription(randomIdea.description);
         setCategory(randomIdea.category);
@@ -131,10 +138,17 @@ export const ToolRequestHub: React.FC<ToolRequestHubProps> = ({
       const ai = new GoogleGenAI({ apiKey });
       
       const existingToolsSummary = TOOLS_REGISTRY.map(t => `- ${t.name}: ${t.desc}`).join('\n');
+      const queueSummary = requests && requests.length > 0
+        ? requests.map(r => `- [${r.status.toUpperCase()}] ${r.title}: ${r.description}`).join('\n')
+        : 'None';
+
       const promptText = `Here is a list of existing tools already built into our web utility suite:
 ${existingToolsSummary}
 
-Generate a creative, highly useful web developer tool or browser utility idea that is COMPLETELY UNIQUE and different from any of the existing tools listed above. Avoid duplication. Return ONLY valid JSON with keys: title (string, short punchy name), description (string, 2 sentences explaining its value), category (one of: productivity, math, text, conversion, developer, utility, other).`;
+Here is a list of tool suggestions and feature requests currently in the community queue (do NOT repeat, overlap with, or recreate any of these queued ideas):
+${queueSummary}
+
+Generate a creative, highly useful web developer tool or browser utility idea that is COMPLETELY UNIQUE and different from any of the existing tools and queued feature requests listed above. Avoid any duplication or redundancy. Return ONLY valid JSON with keys: title (string, short punchy name), description (string, 2 sentences explaining its value), category (one of: productivity, math, text, conversion, developer, utility, other).`;
 
       let res;
       try {
@@ -169,7 +183,14 @@ Generate a creative, highly useful web developer tool or browser utility idea th
       const errMessage = err instanceof Error ? err.message : 'Unknown error';
       alert(`Gemini AI generation failed: ${errMessage}\n\nFalling back to idea bank template.`);
       
-      const randomIdea = GEMINI_IDEA_BANK[Math.floor(Math.random() * GEMINI_IDEA_BANK.length)];
+      const availableIdeaBank = GEMINI_IDEA_BANK.filter(idea => {
+        const titleLower = idea.title.toLowerCase();
+        const existsInQueue = requests.some(r => r.title.toLowerCase() === titleLower || titleLower.includes(r.title.toLowerCase()));
+        const existsInRegistry = TOOLS_REGISTRY.some(t => t.name.toLowerCase() === titleLower || titleLower.includes(t.name.toLowerCase()));
+        return !existsInQueue && !existsInRegistry;
+      });
+      const ideaPool = availableIdeaBank.length > 0 ? availableIdeaBank : GEMINI_IDEA_BANK;
+      const randomIdea = ideaPool[Math.floor(Math.random() * ideaPool.length)];
       setTitle(randomIdea.title);
       setDescription(randomIdea.description);
       setCategory(randomIdea.category);
