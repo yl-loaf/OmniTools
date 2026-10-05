@@ -107,6 +107,11 @@ export interface UserProfile {
   showNameOnLeaderboard?: boolean;
   createdAt: string;
   updatedAt: string;
+  autoGeminiPurchased?: boolean;
+  autoGeminiEnabled?: boolean;
+  autoGeminiIntervalMinutes?: number;
+  autoGeminiLastRun?: string;
+  autoGeminiSubmittedCount?: number;
 }
 
 export interface CompletionStats {

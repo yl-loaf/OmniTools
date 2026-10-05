@@ -41,7 +41,8 @@ import {
   GitBranch,
   Zap,
   Search,
-  Compass
+  Compass,
+  Bot
 } from 'lucide-react';
 import { TOP_CONVERSION_PERMUTATIONS } from './fileConversions';
 import { ThemeConfig, ThemeId } from '../types';
@@ -166,6 +167,16 @@ export const TOOLS_REGISTRY: ToolMeta[] = [
   },
 
   // Developer
+  {
+    id: 'auto-gemini-bot',
+    name: 'Auto Gemini Tool Idea Bot Automation',
+    shortLabel: 'Auto Gemini Bot',
+    desc: 'Autonomous AI agent that periodically generates unique developer tool ideas and submits them to the community queue for 20 CP with rate limit protection',
+    icon: Bot,
+    category: 'Developer',
+    badge: 'AI Bot',
+    keywords: ['gemini', 'automation', 'ai bot', 'tool idea', 'suggest', 'rate limit', 'cp', 'autonomous'],
+  },
   {
     id: 'jwt-auditor',
     name: 'JWT Claims & Permissions Auditor',

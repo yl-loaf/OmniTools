@@ -88,6 +88,7 @@ import ComponentGrapher from './components/tools/ComponentGrapher';
 import EventFlowDebugger from './components/tools/EventFlowDebugger';
 import NoAiSearch from './components/tools/NoAiSearch';
 import CssStackingVisualizer from './components/tools/CssStackingVisualizer';
+import { AutoGeminiBot } from './components/tools/AutoGeminiBot';
 
 // Daily Life & 30+ Features Suites
 import { HealthFitnessSuite } from './components/tools/daily/HealthFitnessSuite';
@@ -927,6 +928,25 @@ export default function App() {
     showToast('Successfully purchased a Streak Freeze! 🧊 Protected against missed days.', 'success');
   };
 
+  const handleUpdateUser = async (updatedUser: UserProfile) => {
+    setCurrentUser(updatedUser);
+    localStorage.setItem('omnitools_current_user', JSON.stringify(updatedUser));
+    const updatedUsers = users.some(u => u.uid === updatedUser.uid)
+      ? users.map(u => u.uid === updatedUser.uid ? updatedUser : u)
+      : [updatedUser, ...users];
+    setUsers(updatedUsers);
+    saveLocalUsers(updatedUsers);
+
+    const { db, isConfigured } = initFirebase();
+    if (isConfigured && db) {
+      try {
+        await setDoc(doc(db, 'users', updatedUser.uid), cleanFirestoreData(updatedUser), { merge: true });
+      } catch (e) {
+        console.warn('Error updating user profile in Firestore:', e);
+      }
+    }
+  };
+
   // Submit Request
   const handleSubmitRequest = async (
     newReqData: Omit<ToolRequest, 'id' | 'createdAt' | 'updatedAt' | 'votes' | 'voters' | 'pointsAwarded'>
@@ -1351,6 +1371,15 @@ export default function App() {
         {activeTab === 'event-flow-debugger' && <EventFlowDebugger />}
         {activeTab === 'no-ai-search' && <NoAiSearch />}
         {activeTab === 'css-stacking-visualizer' && <CssStackingVisualizer />}
+        {activeTab === 'auto-gemini-bot' && (
+          <AutoGeminiBot
+            currentUser={currentUser}
+            requests={requests}
+            onUpdateUser={handleUpdateUser}
+            onSubmitRequest={handleSubmitRequest}
+            onOpenAuth={handleLoginGoogle}
+          />
+        )}
 
         {/* Universal File Converter Suite & 100+ Permutation Tools */}
         {(activeTab === 'file-converter' || activeTab.startsWith('convert-')) && (
@@ -1388,6 +1417,7 @@ export default function App() {
             isAdminMode={isAdminMode}
             onToggleAdminMode={() => setIsAdminMode(!isAdminMode)}
             onImportRequests={handleImportRequests}
+            setActiveTab={setActiveTab}
           />
         )}
         {activeTab === 'leaderboard' && (

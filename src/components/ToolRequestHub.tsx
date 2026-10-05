@@ -34,6 +34,7 @@ interface ToolRequestHubProps {
   isAdminMode: boolean;
   onToggleAdminMode: () => void;
   onImportRequests?: (reqs: ToolRequest[]) => void;
+  setActiveTab?: (tab: string) => void;
 }
 
 export const ToolRequestHub: React.FC<ToolRequestHubProps> = ({
@@ -47,6 +48,7 @@ export const ToolRequestHub: React.FC<ToolRequestHubProps> = ({
   isAdminMode,
   onToggleAdminMode,
   onImportRequests,
+  setActiveTab,
 }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -280,6 +282,17 @@ Generate a creative, highly useful web developer tool or browser utility idea th
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
+          {setActiveTab && (
+            <button
+              onClick={() => setActiveTab('auto-gemini-bot')}
+              className="px-3.5 py-2 bg-gradient-to-r from-purple-900/80 to-indigo-900/80 hover:from-purple-800 hover:to-indigo-800 text-purple-200 border border-purple-700/80 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm shadow-purple-900/20"
+              title="Buy and configure Auto Gemini Tool Idea Bot automation for 20 CP"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+              <span>🤖 Auto Gemini Bot (20 CP)</span>
+            </button>
+          )}
+
           <button
             onClick={handleSyncSheet}
             disabled={isSyncingSheet}
