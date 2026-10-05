@@ -157,9 +157,9 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
     setTimeout(() => setCopiedId(null), 2500);
   };
 
-  const handleBatchCopyRequests = (n: number) => {
+  const handleBatchCopyRequests = (n: number | 'All') => {
     const pendingRequests = filteredRequests.filter((r) => r.status === 'pending');
-    const targets = pendingRequests.slice(0, n);
+    const targets = n === 'All' ? pendingRequests : pendingRequests.slice(0, n as number);
     if (targets.length === 0) return;
     const bodyText = targets
       .map(
@@ -175,9 +175,9 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
     setTimeout(() => setCopiedId(null), 2500);
   };
 
-  const handleBatchCopyBugs = (n: number) => {
+  const handleBatchCopyBugs = (n: number | 'All') => {
     const openBugs = filteredIssues.filter((i) => i.status === 'open');
-    const targets = openBugs.slice(0, n);
+    const targets = n === 'All' ? openBugs : openBugs.slice(0, n as number);
     if (targets.length === 0) return;
     const bodyText = targets
       .map(
@@ -191,6 +191,19 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
     navigator.clipboard.writeText(prompt);
     setCopiedId(`batch-bug-${n}`);
     setTimeout(() => setCopiedId(null), 2500);
+  };
+
+  const handleMarkAllPendingAsInDev = () => {
+    const pendingRequests = requests.filter((r) => r.status === 'pending');
+    if (pendingRequests.length === 0) {
+      alert('No pending requests found to mark as In Development.');
+      return;
+    }
+    if (window.confirm(`Mark all ${pendingRequests.length} pending feature requests as In Development?`)) {
+      pendingRequests.forEach((r) => {
+        onUpdateStatus(r.id, 'in_progress');
+      });
+    }
   };
 
   const handleExecutePurge = async () => {
@@ -340,31 +353,44 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
           </button>
         </div>
 
-        {/* Batch Copy 1, 2, 5, 10, 20, 25 NEW pending features & open bugs only */}
-        <div className="flex items-center gap-1 flex-wrap bg-slate-900 p-1.5 rounded-xl border border-slate-800">
-          <span className="text-[10px] font-bold text-slate-400 px-2 uppercase">
-            Copy New {activeAdminTab === 'requests' ? 'Pending' : 'Open'} Top:
-          </span>
-          {[1, 2, 5, 10, 20, 25].map((n) => {
-            const batchKey = `batch-${activeAdminTab === 'requests' ? 'req' : 'bug'}-${n}`;
-            const isCopied = copiedId === batchKey;
+        {/* Batch Copy & Mark All In Dev */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {activeAdminTab === 'requests' && stats.pending > 0 && (
+            <button
+              onClick={handleMarkAllPendingAsInDev}
+              className="px-3 py-1.5 bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-700/60 text-cyan-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-md"
+              title="Mark all pending feature requests as In Development"
+            >
+              <Wrench className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Mark All Pending In Dev ({stats.pending})</span>
+            </button>
+          )}
 
-            return (
-              <button
-                key={n}
-                onClick={() => activeAdminTab === 'requests' ? handleBatchCopyRequests(n) : handleBatchCopyBugs(n)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition border flex items-center gap-1 ${
-                  isCopied
-                    ? 'bg-emerald-950 text-emerald-300 border-emerald-700'
-                    : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
-                }`}
-                title={`Copy first ${n} new/pending ${activeAdminTab === 'requests' ? 'features' : 'bugs'} to clipboard`}
-              >
-                {isCopied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-purple-400" />}
-                <span>{n}</span>
-              </button>
-            );
-          })}
+          <div className="flex items-center gap-1 flex-wrap bg-slate-900 p-1.5 rounded-xl border border-slate-800">
+            <span className="text-[10px] font-bold text-slate-400 px-2 uppercase">
+              Copy {activeAdminTab === 'requests' ? 'Pending' : 'Open'}:
+            </span>
+            {[1, 2, 5, 10, 20, 25, 50, 'All' as const].map((n) => {
+              const batchKey = `batch-${activeAdminTab === 'requests' ? 'req' : 'bug'}-${n}`;
+              const isCopied = copiedId === batchKey;
+
+              return (
+                <button
+                  key={n}
+                  onClick={() => activeAdminTab === 'requests' ? handleBatchCopyRequests(n) : handleBatchCopyBugs(n)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition border flex items-center gap-1 ${
+                    isCopied
+                      ? 'bg-emerald-950 text-emerald-300 border-emerald-700'
+                      : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+                  }`}
+                  title={`Copy ${n === 'All' ? 'all' : `first ${n}`} new/pending ${activeAdminTab === 'requests' ? 'features' : 'bugs'} to clipboard`}
+                >
+                  {isCopied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-purple-400" />}
+                  <span>{n}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
