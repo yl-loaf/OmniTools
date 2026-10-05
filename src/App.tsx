@@ -72,6 +72,15 @@ import { StyleSyncVars } from './components/tools/StyleSyncVars';
 import { DevLinkSnippets } from './components/tools/DevLinkSnippets';
 import { CodeLensNavigatorTool } from './components/tools/CodeLensNavigatorTool';
 import { A11yLensLive } from './components/tools/A11yLensLive';
+import RegexPlayground from './components/tools/RegexPlayground';
+import PerfGuard from './components/tools/PerfGuard';
+import MockRequest from './components/tools/MockRequest';
+import ApiContextSwitcher from './components/tools/ApiContextSwitcher';
+import StateLens from './components/tools/StateLens';
+import StateSync from './components/tools/StateSync';
+import CssGridPlayground from './components/tools/CssGridPlayground';
+import ApiMocktail from './components/tools/ApiMocktail';
+import DomDiffSnapshot from './components/tools/DomDiffSnapshot';
 
 // Daily Life & 30+ Features Suites
 import { HealthFitnessSuite } from './components/tools/daily/HealthFitnessSuite';
@@ -1319,6 +1328,15 @@ export default function App() {
         {activeTab === 'devlink-snippets' && <DevLinkSnippets />}
         {activeTab === 'codelens-navigator' && <CodeLensNavigatorTool />}
         {activeTab === 'a11ylens-live' && <A11yLensLive />}
+        {activeTab === 'regex-playground' && <RegexPlayground />}
+        {activeTab === 'perf-guard' && <PerfGuard />}
+        {activeTab === 'mock-request' && <MockRequest />}
+        {activeTab === 'api-context-switcher' && <ApiContextSwitcher />}
+        {activeTab === 'state-lens' && <StateLens />}
+        {activeTab === 'state-sync' && <StateSync />}
+        {activeTab === 'css-grid-playground' && <CssGridPlayground />}
+        {activeTab === 'api-mocktail' && <ApiMocktail />}
+        {activeTab === 'dom-diff-snapshot' && <DomDiffSnapshot />}
 
         {/* Universal File Converter Suite & 100+ Permutation Tools */}
         {(activeTab === 'file-converter' || activeTab.startsWith('convert-')) && (
