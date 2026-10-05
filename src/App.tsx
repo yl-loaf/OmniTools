@@ -12,6 +12,8 @@ import { ActiveToolHeader } from './components/ActiveToolHeader';
 import { HomePage } from './components/HomePage';
 import { ReportBugModal } from './components/ReportBugModal';
 import { SuggestEnhancementModal } from './components/SuggestEnhancementModal';
+import { SettingsPage } from './components/SettingsPage';
+import { playClickSound, playSuccessSound } from './services/soundEffects';
 import { FriendsHub } from './components/FriendsHub';
 import { TOOLS_REGISTRY, DEFAULT_FAVORITE_IDS, THEMES } from './data/toolsRegistry';
 
@@ -151,12 +153,39 @@ export default function App() {
     localStorage.setItem('omnitools_theme', currentTheme);
   }, [currentTheme]);
 
+  // Apply visual and ergonomic preferences on mount
+  useEffect(() => {
+    try {
+      const fontScale = localStorage.getItem('omnitools_font_scale');
+      if (fontScale) document.documentElement.setAttribute('data-font-scale', fontScale);
+
+      const codeFont = localStorage.getItem('omnitools_code_font');
+      if (codeFont) document.documentElement.setAttribute('data-code-font', codeFont);
+
+      const highContrast = localStorage.getItem('omnitools_high_contrast');
+      if (highContrast) document.documentElement.setAttribute('data-high-contrast', highContrast);
+
+      const reducedMotion = localStorage.getItem('omnitools_reduced_motion');
+      if (reducedMotion) document.documentElement.setAttribute('data-reduced-motion', reducedMotion);
+    } catch {}
+  }, []);
+
   const getInitialTab = () => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const toolParam = params.get('tool');
       if (toolParam) return toolParam;
+      if (params.get('tab') === 'settings') return 'settings';
       if (window.location.pathname === '/admin') return 'admin';
+
+      const shouldRestore = localStorage.getItem('omnitools_restore_last_tool') === 'true';
+      const lastTool = localStorage.getItem('omnitools_last_tool');
+      if (shouldRestore && lastTool) return lastTool;
+
+      const defaultLanding = localStorage.getItem('omnitools_default_tab');
+      if (defaultLanding && ['home', 'favorites', 'request-hub', 'leaderboard', 'settings'].includes(defaultLanding)) {
+        return defaultLanding;
+      }
     }
     return 'home';
   };
@@ -223,6 +252,7 @@ export default function App() {
   const trackToolUsage = async (toolId: string) => {
     const isTool = TOOLS_REGISTRY.some((t) => t.id === toolId);
     if (!isTool) return;
+    if (localStorage.getItem('omnitools_track_usage') === 'false') return;
 
     setUsageCounts((prev) => {
       const updated = {
@@ -254,6 +284,9 @@ export default function App() {
   // Trigger usage tracking whenever active tab changes to a tool
   useEffect(() => {
     trackToolUsage(activeTab);
+    if (activeTab && activeTab !== 'home' && activeTab !== 'settings' && activeTab !== 'leaderboard' && activeTab !== 'favorites' && activeTab !== 'request-hub') {
+      localStorage.setItem('omnitools_last_tool', activeTab);
+    }
   }, [activeTab]);
 
   // Report Bug Modal Handlers
@@ -372,8 +405,10 @@ export default function App() {
     const toolName = toolMeta?.name || 'Tool';
 
     if (isFav) {
+      playClickSound();
       showToast(`Removed "${toolName}" from favorites.`, 'info');
     } else {
+      playSuccessSound();
       showToast(`Starred "${toolName}" to My Favorites! ⭐`, 'success');
     }
 
@@ -1115,7 +1150,15 @@ export default function App() {
     <div className={`min-h-screen ${THEMES[currentTheme].bgClass} flex flex-col font-sans selection:bg-blue-600 selection:text-white`}>
       {/* Toast Notification Container */}
       {toast && (
-        <div className="fixed bottom-5 right-5 z-50 animate-bounce">
+        <div
+          className={`fixed z-50 animate-bounce ${
+            localStorage.getItem('omnitools_toast_pos') === 'top-right'
+              ? 'top-5 right-5'
+              : localStorage.getItem('omnitools_toast_pos') === 'bottom-center'
+              ? 'bottom-5 left-1/2 -translate-x-1/2'
+              : 'bottom-5 right-5'
+          }`}
+        >
           <div
             className={`px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 text-xs font-semibold border ${
               toast.type === 'success'
@@ -1295,6 +1338,11 @@ export default function App() {
             />
             <Leaderboard users={users} currentUserId={currentUser?.uid} />
           </div>
+        )}
+
+        {/* Workspace Settings */}
+        {activeTab === 'settings' && (
+          <SettingsPage onBack={() => setActiveTab('home')} />
         )}
       </main>
 

@@ -117,9 +117,10 @@ export const ToolRequestHub: React.FC<ToolRequestHubProps> = ({
     try {
       const apiKey = localStorage.getItem('omnitools_gemini_key') || import.meta.env.VITE_GEMINI_API_KEY;
       if (apiKey) {
+        const model = localStorage.getItem('omnitools_gemini_model') || 'gemini-2.5-flash';
         const ai = new GoogleGenAI({ apiKey });
         const res = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
+          model,
           contents: 'Generate a creative, highly useful web developer tool or browser utility idea for an online productivity suite. Return ONLY valid JSON with keys: title (string, short punchy name), description (string, 2 sentences explaining its value), category (one of: productivity, math, text, conversion, developer, utility, other).',
         });
         const text = res.text || '';

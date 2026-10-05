@@ -407,14 +407,18 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             {/* Settings Button */}
-            <a
-              href="./settings.html"
+            <button
+              onClick={() => setActiveTab('settings')}
               title="Workspace Settings"
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition border border-slate-700 shadow-xs"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition border shadow-xs cursor-pointer ${
+                activeTab === 'settings'
+                  ? 'bg-blue-600 border-blue-500 text-white shadow-blue-500/20'
+                  : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+              }`}
             >
               <Settings className="w-3.5 h-3.5 text-blue-400" />
               <span className="hidden sm:inline">Settings</span>
-            </a>
+            </button>
 
             {currentUser && (
               <div
@@ -550,13 +554,20 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             </div>
             <div className="pt-2 space-y-2">
-              <a
-                href="./settings.html"
-                className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl text-xs font-bold flex items-center justify-center gap-2"
+              <button
+                onClick={() => {
+                  setActiveTab('settings');
+                  setMobileMenuOpen(false);
+                }}
+                className={`w-full py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border transition cursor-pointer ${
+                  activeTab === 'settings'
+                    ? 'bg-blue-600 border-blue-500 text-white'
+                    : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200'
+                }`}
               >
                 <Settings className="w-4 h-4 text-blue-400" />
                 <span>Open Workspace Settings</span>
-              </a>
+              </button>
               {currentUser && (
                 <a
                   href="/OmniTools/profile.html"

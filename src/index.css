@@ -69,3 +69,49 @@ body {
 .theme-border {
   border-color: var(--border-color) !important;
 }
+
+/* Accessibility & Ergonomics Preferences */
+[data-reduced-motion="true"] *,
+[data-reduced-motion="true"] *::before,
+[data-reduced-motion="true"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+[data-high-contrast="true"] *:focus-visible {
+  outline: 3px solid #38bdf8 !important;
+  outline-offset: 3px !important;
+}
+
+[data-font-scale="90"] {
+  font-size: 90%;
+}
+
+[data-font-scale="110"] {
+  font-size: 110%;
+}
+
+[data-font-scale="120"] {
+  font-size: 120%;
+}
+
+[data-code-font="jetbrains"] code,
+[data-code-font="jetbrains"] pre,
+[data-code-font="jetbrains"] .font-mono {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+}
+
+[data-code-font="fira"] code,
+[data-code-font="fira"] pre,
+[data-code-font="fira"] .font-mono {
+  font-family: 'Fira Code', 'JetBrains Mono', monospace !important;
+}
+
+[data-code-font="source"] code,
+[data-code-font="source"] pre,
+[data-code-font="source"] .font-mono {
+  font-family: 'Source Code Pro', monospace !important;
+}
+
