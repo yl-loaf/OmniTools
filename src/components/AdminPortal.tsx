@@ -206,6 +206,19 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
     }
   };
 
+  const handleShipAllPending = () => {
+    const targets = requests.filter((r) => r.status === 'pending' || r.status === 'in_progress');
+    if (targets.length === 0) {
+      alert('No pending or in-development requests found to ship.');
+      return;
+    }
+    if (window.confirm(`Ship all ${targets.length} pending/in-development feature requests as version v${APP_VERSION}?`)) {
+      targets.forEach((r) => {
+        onUpdateStatus(r.id, 'completed', `v${APP_VERSION}`);
+      });
+    }
+  };
+
   const handleExecutePurge = async () => {
     setIsPurging(true);
     try {
@@ -353,17 +366,28 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
           </button>
         </div>
 
-        {/* Batch Copy & Mark All In Dev */}
+        {/* Batch Copy & Mark All In Dev / Ship All */}
         <div className="flex items-center gap-2 flex-wrap">
-          {activeAdminTab === 'requests' && stats.pending > 0 && (
-            <button
-              onClick={handleMarkAllPendingAsInDev}
-              className="px-3 py-1.5 bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-700/60 text-cyan-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-md"
-              title="Mark all pending feature requests as In Development"
-            >
-              <Wrench className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Mark All Pending In Dev ({stats.pending})</span>
-            </button>
+          {activeAdminTab === 'requests' && (stats.pending > 0 || stats.inProgress > 0) && (
+            <>
+              <button
+                onClick={handleMarkAllPendingAsInDev}
+                className="px-3 py-1.5 bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-700/60 text-cyan-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-md"
+                title="Mark all pending feature requests as In Development"
+              >
+                <Wrench className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Mark All In Dev ({stats.pending})</span>
+              </button>
+
+              <button
+                onClick={handleShipAllPending}
+                className="px-3 py-1.5 bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-700/60 text-emerald-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-md"
+                title="Ship all pending & in-development feature requests instantly"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Ship All ({stats.pending + stats.inProgress})</span>
+              </button>
+            </>
           )}
 
           <div className="flex items-center gap-1 flex-wrap bg-slate-900 p-1.5 rounded-xl border border-slate-800">

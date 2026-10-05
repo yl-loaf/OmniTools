@@ -137,9 +137,9 @@ export const ToolRequestHub: React.FC<ToolRequestHubProps> = ({
         });
       } catch (firstErr) {
         // Fallback model retry if primary model name fails
-        console.warn('Primary Gemini model failed, retrying with gemini-1.5-flash:', firstErr);
+        console.warn('Primary Gemini model failed, retrying with gemini-2.5-flash-lite:', firstErr);
         res = await ai.models.generateContent({
-          model: 'gemini-1.5-flash',
+          model: 'gemini-2.5-flash-lite',
           contents: 'Generate a creative, highly useful web developer tool or browser utility idea for an online productivity suite. Return ONLY valid JSON with keys: title (string, short punchy name), description (string, 2 sentences explaining its value), category (one of: productivity, math, text, conversion, developer, utility, other).',
         });
       }
