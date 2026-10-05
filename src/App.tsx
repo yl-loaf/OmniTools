@@ -82,6 +82,12 @@ import StateSync from './components/tools/StateSync';
 import CssGridPlayground from './components/tools/CssGridPlayground';
 import ApiMocktail from './components/tools/ApiMocktail';
 import DomDiffSnapshot from './components/tools/DomDiffSnapshot';
+import InteractionFlowRecorder from './components/tools/InteractionFlowRecorder';
+import BundleAnalyzer from './components/tools/BundleAnalyzer';
+import ComponentGrapher from './components/tools/ComponentGrapher';
+import EventFlowDebugger from './components/tools/EventFlowDebugger';
+import NoAiSearch from './components/tools/NoAiSearch';
+import CssStackingVisualizer from './components/tools/CssStackingVisualizer';
 
 // Daily Life & 30+ Features Suites
 import { HealthFitnessSuite } from './components/tools/daily/HealthFitnessSuite';
@@ -1339,6 +1345,12 @@ export default function App() {
         {activeTab === 'css-grid-playground' && <CssGridPlayground />}
         {activeTab === 'api-mocktail' && <ApiMocktail />}
         {activeTab === 'dom-diff-snapshot' && <DomDiffSnapshot />}
+        {activeTab === 'interaction-flow-recorder' && <InteractionFlowRecorder />}
+        {activeTab === 'bundle-analyzer' && <BundleAnalyzer />}
+        {activeTab === 'component-grapher' && <ComponentGrapher />}
+        {activeTab === 'event-flow-debugger' && <EventFlowDebugger />}
+        {activeTab === 'no-ai-search' && <NoAiSearch />}
+        {activeTab === 'css-stacking-visualizer' && <CssStackingVisualizer />}
 
         {/* Universal File Converter Suite & 100+ Permutation Tools */}
         {(activeTab === 'file-converter' || activeTab.startsWith('convert-')) && (
