@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { fetchRequestsFromGoogleSheet, syncPromptToGoogleSheet } from '../services/googleSheets';
 import { GoogleGenAI } from '@google/genai';
+import { TOOLS_REGISTRY } from '../data/toolsRegistry';
 
 interface ToolRequestHubProps {
   requests: ToolRequest[];
@@ -129,18 +130,24 @@ export const ToolRequestHub: React.FC<ToolRequestHubProps> = ({
       const model = localStorage.getItem('omnitools_gemini_model') || 'gemini-3.5-flash-lite';
       const ai = new GoogleGenAI({ apiKey });
       
+      const existingToolsSummary = TOOLS_REGISTRY.map(t => `- ${t.name}: ${t.desc}`).join('\n');
+      const promptText = `Here is a list of existing tools already built into our web utility suite:
+${existingToolsSummary}
+
+Generate a creative, highly useful web developer tool or browser utility idea that is COMPLETELY UNIQUE and different from any of the existing tools listed above. Avoid duplication. Return ONLY valid JSON with keys: title (string, short punchy name), description (string, 2 sentences explaining its value), category (one of: productivity, math, text, conversion, developer, utility, other).`;
+
       let res;
       try {
         res = await ai.models.generateContent({
           model,
-          contents: 'Generate a creative, highly useful web developer tool or browser utility idea for an online productivity suite. Return ONLY valid JSON with keys: title (string, short punchy name), description (string, 2 sentences explaining its value), category (one of: productivity, math, text, conversion, developer, utility, other).',
+          contents: promptText,
         });
       } catch (firstErr) {
         // Fallback model retry if primary model name fails
         console.warn('Primary Gemini model failed, retrying with gemini-3.5-flash-lite:', firstErr);
         res = await ai.models.generateContent({
           model: 'gemini-3.5-flash-lite',
-          contents: 'Generate a creative, highly useful web developer tool or browser utility idea for an online productivity suite. Return ONLY valid JSON with keys: title (string, short punchy name), description (string, 2 sentences explaining its value), category (one of: productivity, math, text, conversion, developer, utility, other).',
+          contents: promptText,
         });
       }
 
