@@ -108,9 +108,9 @@ export function EtymologyTreeVisualizer() {
 
   const currentRoot = ETYMOLOGY_DATABASE[selectedKey] || ETYMOLOGY_DATABASE['democracy'];
 
-  const filteredKeys = Object.keys(ETIMOLOGY_DATABASE).filter((k) =>
+  const filteredKeys = Object.keys(ETYMOLOGY_DATABASE).filter((k) =>
     k.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    ETIMOLOGY_DATABASE[k].word.toLowerCase().includes(searchTerm.toLowerCase())
+    ETYMOLOGY_DATABASE[k].word.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -147,7 +147,7 @@ export function EtymologyTreeVisualizer() {
           <div className="space-y-2">
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Featured Words</span>
             {filteredKeys.map((key) => {
-              const item = ETIMOLOGY_DATABASE[key];
+              const item = ETYMOLOGY_DATABASE[key];
               return (
                 <button
                   key={key}
