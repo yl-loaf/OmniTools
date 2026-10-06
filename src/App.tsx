@@ -101,6 +101,10 @@ import { ChiptuneSynthTool } from './components/tools/ChiptuneSynthTool';
 import { MarkdownTableCsvTool } from './components/tools/MarkdownTableCsvTool';
 import { PantryExpiryAuditorTool } from './components/tools/PantryExpiryAuditorTool';
 import { IsometricPixelStudioTool } from './components/tools/IsometricPixelStudioTool';
+import { AudioRoomAnalyzer } from './components/tools/AudioRoomAnalyzer';
+import { MortgageAmortizationVisualizer } from './components/tools/MortgageAmortizationVisualizer';
+import { EtymologyTreeVisualizer } from './components/tools/EtymologyTreeVisualizer';
+import { CelestialStarMap } from './components/tools/CelestialStarMap';
 
 // Daily Life & 30+ Features Suites
 import { HealthFitnessSuite } from './components/tools/daily/HealthFitnessSuite';
@@ -1401,6 +1405,10 @@ export default function App() {
         {activeTab === 'markdown-table-csv' && <MarkdownTableCsvTool />}
         {activeTab === 'pantry-expiry-auditor' && <PantryExpiryAuditorTool />}
         {activeTab === 'isometric-pixel-studio' && <IsometricPixelStudioTool />}
+        {activeTab === 'audio-room-analyzer' && <AudioRoomAnalyzer />}
+        {activeTab === 'mortgage-amortization' && <MortgageAmortizationVisualizer />}
+        {activeTab === 'etymology-tree' && <EtymologyTreeVisualizer />}
+        {activeTab === 'celestial-star-map' && <CelestialStarMap />}
         {activeTab === 'auto-gemini-bot' && (
           <AutoGeminiBot
             currentUser={currentUser}
