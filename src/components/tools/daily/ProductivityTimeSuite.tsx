@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Clock, CheckSquare, Compass, BookOpen, Heart, Calendar, Plus, Trash2 } from 'lucide-react';
+import { Clock, CheckSquare, Compass, Bookmark, Heart, Calendar, Plus, Trash2 } from 'lucide-react';
 
 export const ProductivityTimeSuite: React.FC = () => {
   return (
@@ -225,7 +225,7 @@ const ReadingTimeCalculator = () => {
     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4">
       <div className="flex items-center justify-between border-b border-slate-800 pb-3">
         <h3 className="text-sm font-bold text-white flex items-center gap-2">
-          <BookOpen className="w-4 h-4 text-emerald-400" /> Reading Time & Speech Estimator
+          <Bookmark className="w-4 h-4 text-emerald-400" /> Reading Time & Speech Estimator
         </h3>
         <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">
           Content

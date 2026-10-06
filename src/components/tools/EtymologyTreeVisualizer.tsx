@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BookOpen, Search, GitBranch, Globe, Sparkles } from 'lucide-react';
+import { Bookmark, Search, GitBranch, Globe, Sparkles } from 'lucide-react';
 
 interface EtymologyNode {
   word: string;
@@ -119,7 +119,7 @@ export function EtymologyTreeVisualizer() {
         <div>
           <div className="flex items-center gap-2.5">
             <div className="p-2 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-xl text-white shadow-lg">
-              <BookOpen className="w-6 h-6" />
+              <Bookmark className="w-6 h-6" />
             </div>
             <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-indigo-300 to-cyan-400">
               Lexicon Etymology & Root Word Tree Visualizer

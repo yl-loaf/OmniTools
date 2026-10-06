@@ -45,7 +45,8 @@ import {
   Bot,
   Network,
   ShoppingCart,
-  Music
+  Music,
+  Bookmark
 } from 'lucide-react';
 import { TOP_CONVERSION_PERMUTATIONS } from './fileConversions';
 import { ThemeConfig, ThemeId } from '../types';
@@ -315,7 +316,7 @@ export const TOOLS_REGISTRY: ToolMeta[] = [
     name: 'Lexicon Etymology & Root Word Tree Visualizer',
     shortLabel: 'Etymology Tree',
     desc: 'Trace historical origins, morphological roots, and semantic shifts of words across ancient languages through dynamic family trees.',
-    icon: BookOpen,
+    icon: Bookmark,
     category: 'Developer',
     badge: 'New',
     keywords: ['etymology', 'word root', 'linguistics', 'lexicon', 'dictionary', 'history'],
