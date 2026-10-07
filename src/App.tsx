@@ -114,6 +114,7 @@ import { Bip39WalletSandbox } from './components/tools/Bip39WalletSandbox';
 import { ErgonomicCalibrator } from './components/tools/ErgonomicCalibrator';
 import { MarkdownKanbanBoard } from './components/tools/MarkdownKanbanBoard';
 import { SqlExecutionPlanVisualizer } from './components/tools/SqlExecutionPlanVisualizer';
+import { GitHubRepoSizeInspector } from './components/tools/GitHubRepoSizeInspector';
 
 // Daily Life & 30+ Features Suites
 import { HealthFitnessSuite } from './components/tools/daily/HealthFitnessSuite';
@@ -1427,6 +1428,7 @@ export default function App() {
         {activeTab === 'ergonomic-calibrator' && <ErgonomicCalibrator />}
         {activeTab === 'markdown-kanban-board' && <MarkdownKanbanBoard />}
         {activeTab === 'sql-execution-plan' && <SqlExecutionPlanVisualizer />}
+        {activeTab === 'github-repo-size' && <GitHubRepoSizeInspector />}
         {activeTab === 'celestial-star-map' && <CelestialStarMap />}
         {activeTab === 'auto-gemini-bot' && (
           <AutoGeminiBot

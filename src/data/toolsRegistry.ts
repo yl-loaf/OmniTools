@@ -47,7 +47,8 @@ import {
   ShoppingCart,
   Music,
   Bookmark,
-  Sparkles
+  Sparkles,
+  Github
 } from 'lucide-react';
 import { TOP_CONVERSION_PERMUTATIONS } from './fileConversions';
 import { ThemeConfig, ThemeId } from '../types';
@@ -723,14 +724,14 @@ export const TOOLS_REGISTRY: ToolMeta[] = [
     keywords: ['kanban', 'markdown', 'task flow', 'project management', 'board'],
   },
   {
-    id: 'sql-execution-plan',
-    name: 'SQL Execution Plan Visualizer & Index Advisor',
-    shortLabel: 'SQL Execution Plan',
-    desc: 'Parse raw SQL EXPLAIN plans into an intuitive node-based execution tree, highlighting full table scans and recommending optimal indexes',
-    icon: Database,
+    id: 'github-repo-size',
+    name: 'GitHub Repository Size Inspector & Analyzer',
+    shortLabel: 'GitHub Repo Size',
+    desc: 'Inspect any public GitHub repository size in KB/MB/GB, branch statistics, star counts, and codebase metrics via GitHub REST API',
+    icon: Github,
     category: 'Developer',
     badge: 'New',
-    keywords: ['sql', 'execution plan', 'index advisor', 'database', 'explain'],
+    keywords: ['github', 'repository size', 'repo size', 'git', 'api', 'inspector'],
   },
 
   {
