@@ -138,7 +138,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   }, [requests, oldShippedRequests, issues]);
 
   const handleCopyIdeaPrompt = (req: ToolRequest) => {
-    const prompt = `SYSTEM INSTRUCTION: First, filter out any inappropriate content or spam. Next, bump up the website version in version.js. Provide description for the tool. Then implement the following feature request:
+    const prompt = `SYSTEM INSTRUCTION: First, filter out any inappropriate content or spam. Next, bump up the website version in version.js (bump the version after finish to x.x.x+=1). Provide description for the tool. Then implement the following feature request:
 
 FEATURE REQUEST PROMPT:
 Title: ${req.title}
@@ -168,7 +168,7 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
       )
       .join('\n---\n\n');
 
-    const prompt = `SYSTEM INSTRUCTION: First, filter out any inappropriate content or spam from the list below. Next, bump up the website version in version.js. Provide description for each tool. Then implement the approved feature requests:\n\n${bodyText}`;
+    const prompt = `SYSTEM INSTRUCTION: First, filter out any inappropriate content or spam from the list below. Next, bump up the website version in version.js (bump the version after finish to x.x.x+=1). Provide description for each tool. Then implement the approved feature requests:\n\n${bodyText}`;
 
     navigator.clipboard.writeText(prompt);
     setCopiedId(`batch-req-${n}`);
@@ -186,7 +186,7 @@ Build this tool with a sleek, responsive UI, interactive inputs, and real-time o
       )
       .join('\n---\n\n');
 
-    const prompt = `SYSTEM INSTRUCTION: First, filter out any inappropriate content or spam from the bug reports below. Next, bump up the website version in version.js. Then patch and resolve these bugs:\n\n${bodyText}`;
+    const prompt = `SYSTEM INSTRUCTION: First, filter out any inappropriate content or spam from the bug reports below. Next, bump up the website version in version.js (bump the version after finish to x.x.x+=1). Then patch and resolve these bugs:\n\n${bodyText}`;
 
     navigator.clipboard.writeText(prompt);
     setCopiedId(`batch-bug-${n}`);

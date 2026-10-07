@@ -105,6 +105,15 @@ import { AudioRoomAnalyzer } from './components/tools/AudioRoomAnalyzer';
 import { MortgageAmortizationVisualizer } from './components/tools/MortgageAmortizationVisualizer';
 import { EtymologyTreeVisualizer } from './components/tools/EtymologyTreeVisualizer';
 import { CelestialStarMap } from './components/tools/CelestialStarMap';
+import { QuantumFractalExplorer } from './components/tools/QuantumFractalExplorer';
+import { NeumorphismGenerator } from './components/tools/NeumorphismGenerator';
+import { CryptoPortfolioSimulator } from './components/tools/CryptoPortfolioSimulator';
+import { CelestialTransitTracker } from './components/tools/CelestialTransitTracker';
+import { OAuthPkceDebugger } from './components/tools/OAuthPkceDebugger';
+import { Bip39WalletSandbox } from './components/tools/Bip39WalletSandbox';
+import { ErgonomicCalibrator } from './components/tools/ErgonomicCalibrator';
+import { MarkdownKanbanBoard } from './components/tools/MarkdownKanbanBoard';
+import { SqlExecutionPlanVisualizer } from './components/tools/SqlExecutionPlanVisualizer';
 
 // Daily Life & 30+ Features Suites
 import { HealthFitnessSuite } from './components/tools/daily/HealthFitnessSuite';
@@ -1408,6 +1417,16 @@ export default function App() {
         {activeTab === 'audio-room-analyzer' && <AudioRoomAnalyzer />}
         {activeTab === 'mortgage-amortization' && <MortgageAmortizationVisualizer />}
         {activeTab === 'etymology-tree' && <EtymologyTreeVisualizer />}
+        {activeTab === 'quantum-fractal-explorer' && <QuantumFractalExplorer />}
+        {activeTab === 'neumorphism-generator' && <NeumorphismGenerator />}
+        {activeTab === 'crypto-portfolio-simulator' && <CryptoPortfolioSimulator />}
+        {activeTab === 'celestial-transit-tracker' && <CelestialTransitTracker />}
+        {activeTab === 'etymology-tree-visualizer' && <EtymologyTreeVisualizer />}
+        {activeTab === 'oauth-pkce-debugger' && <OAuthPkceDebugger />}
+        {activeTab === 'bip39-wallet-sandbox' && <Bip39WalletSandbox />}
+        {activeTab === 'ergonomic-calibrator' && <ErgonomicCalibrator />}
+        {activeTab === 'markdown-kanban-board' && <MarkdownKanbanBoard />}
+        {activeTab === 'sql-execution-plan' && <SqlExecutionPlanVisualizer />}
         {activeTab === 'celestial-star-map' && <CelestialStarMap />}
         {activeTab === 'auto-gemini-bot' && (
           <AutoGeminiBot
