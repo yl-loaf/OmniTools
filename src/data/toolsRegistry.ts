@@ -724,14 +724,14 @@ export const TOOLS_REGISTRY: ToolMeta[] = [
     keywords: ['kanban', 'markdown', 'task flow', 'project management', 'board'],
   },
   {
-    id: 'github-repo-size',
-    name: 'GitHub Repository Size Inspector & Analyzer',
-    shortLabel: 'GitHub Repo Size',
-    desc: 'Inspect any public GitHub repository size in KB/MB/GB, branch statistics, star counts, and codebase metrics via GitHub REST API',
-    icon: Github,
-    category: 'Developer',
+    id: 'exam-grade-calculator',
+    name: 'Exam Weightage & Target Grade Calculator',
+    shortLabel: 'Exam Grade Calc',
+    desc: 'Add exams, quizzes, and assignments with custom percentage weights to calculate current standing and required final scores',
+    icon: Award,
+    category: 'Math & Finance',
     badge: 'New',
-    keywords: ['github', 'repository size', 'repo size', 'git', 'api', 'inspector'],
+    keywords: ['exam', 'grade calculator', 'weightage', 'gpa', 'score', 'final exam', 'school'],
   },
 
   {

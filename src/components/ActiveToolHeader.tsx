@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TOOLS_REGISTRY } from '../data/toolsRegistry';
 import { UserProfile } from '../types';
 import { initFirebase } from '../services/firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, onSnapshot } from 'firebase/firestore';
 import { Star, Activity, Sparkles, Flame, AlertCircle, Share2, Check } from 'lucide-react';
 
 interface ActiveToolHeaderProps {
@@ -60,6 +60,29 @@ export const ActiveToolHeader: React.FC<ActiveToolHeaderProps> = ({
   };
 
   const [ratingsMap, setRatingsMap] = useState<Record<string, Record<string, number>>>(getRatingsMap);
+
+  useEffect(() => {
+    const { db, isConfigured } = initFirebase();
+    if (isConfigured && db) {
+      const unsub = onSnapshot(collection(db, 'tool_ratings'), (snapshot) => {
+        const remoteMap: Record<string, Record<string, number>> = {};
+        snapshot.forEach((d) => {
+          const data = d.data();
+          if (data && data.toolId && data.ratings) {
+            remoteMap[data.toolId] = data.ratings;
+          }
+        });
+        setRatingsMap((prev) => {
+          const merged = { ...prev, ...remoteMap };
+          localStorage.setItem('omnitools_tool_ratings', JSON.stringify(merged));
+          return merged;
+        });
+      }, (err) => {
+        console.warn('Firestore tool_ratings listener warning:', err);
+      });
+      return () => unsub();
+    }
+  }, []);
 
   const toolRatings = ratingsMap[tool.id] || {};
   const ratingValues = Object.values(toolRatings);

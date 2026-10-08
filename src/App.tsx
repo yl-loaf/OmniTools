@@ -115,6 +115,7 @@ import { ErgonomicCalibrator } from './components/tools/ErgonomicCalibrator';
 import { MarkdownKanbanBoard } from './components/tools/MarkdownKanbanBoard';
 import { SqlExecutionPlanVisualizer } from './components/tools/SqlExecutionPlanVisualizer';
 import { GitHubRepoSizeInspector } from './components/tools/GitHubRepoSizeInspector';
+import { ExamGradeCalculator } from './components/tools/ExamGradeCalculator';
 
 // Daily Life & 30+ Features Suites
 import { HealthFitnessSuite } from './components/tools/daily/HealthFitnessSuite';
