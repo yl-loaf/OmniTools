@@ -1430,6 +1430,7 @@ export default function App() {
         {activeTab === 'markdown-kanban-board' && <MarkdownKanbanBoard />}
         {activeTab === 'sql-execution-plan' && <SqlExecutionPlanVisualizer />}
         {activeTab === 'github-repo-size' && <GitHubRepoSizeInspector />}
+        {activeTab === 'exam-grade-calculator' && <ExamGradeCalculator />}
         {activeTab === 'celestial-star-map' && <CelestialStarMap />}
         {activeTab === 'auto-gemini-bot' && (
           <AutoGeminiBot
